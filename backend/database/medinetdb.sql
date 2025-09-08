@@ -145,6 +145,8 @@ CREATE TABLE `historiales` (
   `medico_id` INT,
   `paciente_id` INT,
   `historial_fecha` DATE,
+  `historial_tipo` VARCHAR(50),
+  `historial_diagnostico` TEXT,
   `historial_estado` BOOLEAN DEFAULT 1
 );
 

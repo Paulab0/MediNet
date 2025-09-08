@@ -32,10 +32,6 @@ const Login = () => {
           case "Medico":
             navigate("/doctor/dashboard");
             break;
-          case 3:
-          case "Paciente":
-            navigate("/patient/dashboard");
-            break;
           default:
             navigate("/dashboard");
         }

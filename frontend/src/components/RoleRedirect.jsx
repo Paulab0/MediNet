@@ -20,9 +20,6 @@ const RoleRedirect = () => {
     case 2:
     case "Medico":
       return <Navigate to="/doctor/dashboard" replace />;
-    case 3:
-    case "Paciente":
-      return <Navigate to="/patient/dashboard" replace />;
     default:
       return <Navigate to="/login" replace />;
   }
