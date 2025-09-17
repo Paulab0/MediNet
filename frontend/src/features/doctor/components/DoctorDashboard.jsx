@@ -413,7 +413,7 @@ const DoctorDashboard = () => {
                     hasAnimated ? "animate-none" : "animate-pulse"
                   }`}
                 >
-                  MEDINET
+                  MediNet
                 </h1>
                 <div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out"></div>
                 <p className="text-xs text-gray-600 text-center mt-2 font-medium tracking-widest opacity-80 group-hover:opacity-100 transition-opacity duration-300">
@@ -1070,7 +1070,7 @@ const DoctorDashboard = () => {
                 </svg>
               </div>
               <div>
-                <h2 className="text-lg font-bold text-blue-900">MEDINET</h2>
+                <h2 className="text-lg font-bold text-blue-900">MediNet</h2>
                 <p className="text-xs text-blue-600 font-medium">
                   Sistema Médico
                 </p>

@@ -78,9 +78,36 @@ CREATE TABLE `especialidades` (
 
 -- Datos especialidades
 INSERT INTO especialidades (especialidad_id, especialidad_nombre) VALUES
-(1, 'Medico General'),
-(2, 'Dermatologo'),
-(3, 'Neurologico');
+(1, 'Alergología'),
+(2, 'Anestesiología'),
+(3, 'Cardiología'),
+(4, 'Cirugía General'),
+(5, 'Cirugía Plástica'),
+(6, 'Dermatología'),
+(7, 'Endocrinología'),
+(8, 'Gastroenterología'),
+(9, 'Geriatría'),
+(10, 'Ginecología y Obstetricia'),
+(11, 'Hematología'),
+(12, 'Infectología'),
+(13, 'Medicina del Deporte'),
+(14, 'Medicina Familiar'),
+(15, 'Medicina General'),
+(16, 'Medicina Interna'),
+(17, 'Nefrología'),
+(18, 'Neumología'),
+(19, 'Neurología'),
+(20, 'Nutriología'),
+(21, 'Oftalmología'),
+(22, 'Oncología'),
+(23, 'Otorrinolaringología'),
+(24, 'Pediatría'),
+(25, 'Psiquiatría'),
+(26, 'Radiología'),
+(27, 'Rehabilitación y Medicina Física'),
+(28, 'Reumatología'),
+(29, 'Traumatología y Ortopedia'),
+(30, 'Urología');
 
 -- Tabla Pacientes
 CREATE TABLE `pacientes` (

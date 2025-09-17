@@ -68,7 +68,7 @@ const Login = () => {
             {/* Logo MEDINET */}
             <div className="text-center">
               <h1 className="text-5xl font-bold mb-4 drop-shadow-lg">
-                MEDINET
+                MediNet
               </h1>
               <div className="w-16 h-1 bg-white mx-auto rounded-full"></div>
             </div>

@@ -309,41 +309,69 @@ const EditProfileForm = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          {/* Información Profesional */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-              <AcademicCapIcon className="w-5 h-5 mr-2 text-blue-600" />
-              Información Profesional
-            </h3>
+ {/* Información Profesional */}
+<div className="space-y-4">
+  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+    <AcademicCapIcon className="w-5 h-5 mr-2 text-blue-600" />
+    Información Profesional
+  </h3>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Especialidad *
-              </label>
-              <select
-                name="especialidad_id"
-                value={formData.especialidad_id}
-                onChange={handleInputChange}
-                required={isEditing}
-                disabled={!isEditing}
-                className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  isEditing
-                    ? "border-gray-300 bg-white"
-                    : "border-gray-200 bg-gray-50 text-gray-700"
-                }`}
-              >
-                <option value="">Selecciona una especialidad</option>
-                {specialties.map((specialty) => (
-                  <option
-                    key={specialty.especialidad_id}
-                    value={specialty.especialidad_id}
-                  >
-                    {specialty.especialidad_nombre}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-2">
+      Especialidad *
+    </label>
+    <select
+      name="especialidad_id"
+      value={formData.especialidad_id}
+      onChange={handleInputChange}
+      required={isEditing}
+      disabled={!isEditing}
+      className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+        isEditing
+          ? "border-gray-300 bg-white"
+          : "border-gray-200 bg-gray-50 text-gray-700"
+      }`}
+    >
+      <option value="">Selecciona una especialidad</option>
+      {[
+        { id: 1, nombre: "Anestesiología" },
+        { id: 2, nombre: "Cardiología" },
+        { id: 3, nombre: "Cirugía General" },
+        { id: 4, nombre: "Cirugía Plástica" },
+        { id: 5, nombre: "Dermatología" },
+        { id: 6, nombre: "Endocrinología" },
+        { id: 7, nombre: "Geriatría" },
+        { id: 8, nombre: "Genética Médica" },
+        { id: 9, nombre: "Ginecología y Obstetricia" },
+        { id: 10, nombre: "Infectología" },
+        { id: 11, nombre: "Medicina del Deporte" },
+        { id: 12, nombre: "Medicina Familiar" },
+        { id: 13, nombre: "Medicina General" },
+        { id: 14, nombre: "Medicina Intensiva" },
+        { id: 15, nombre: "Medicina Interna" },
+        { id: 16, nombre: "Nefrología" },
+        { id: 17, nombre: "Neumología" },
+        { id: 18, nombre: "Neurología" },
+        { id: 19, nombre: "Oftalmología" },
+        { id: 20, nombre: "Oncología" },
+        { id: 21, nombre: "Ortopedia y Traumatología" },
+        { id: 22, nombre: "Otorrinolaringología" },
+        { id: 23, nombre: "Patología" },
+        { id: 24, nombre: "Pediatría" },
+        { id: 25, nombre: "Psiquiatría" },
+        { id: 26, nombre: "Radiología" },
+        { id: 27, nombre: "Reumatología" },
+        { id: 28, nombre: "Urología" },
+      ].map((specialty) => (
+        <option key={specialty.id} value={specialty.id}>
+          {specialty.nombre}
+        </option>
+      ))}
+    </select>
+  </div>
+</div>
+
+
 
           {/* Botones */}
           {isEditing && (

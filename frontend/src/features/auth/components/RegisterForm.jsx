@@ -772,7 +772,7 @@ const RegisterForm = () => {
                 </h3>
                 <div className="text-sm text-gray-600 space-y-3 max-h-32 overflow-y-auto">
                   <p>
-                    Al registrarte en MEDINET, aceptas los siguientes términos y
+                    Al registrarte en MediNet, aceptas los siguientes términos y
                     condiciones:
                   </p>
                   <ul className="list-disc list-inside space-y-2 ml-4">
@@ -805,7 +805,7 @@ const RegisterForm = () => {
                       <span className="font-medium">
                         Acepto los términos y condiciones
                       </span>{" "}
-                      de uso de MEDINET
+                      de uso de MediNet
                     </span>
                   </label>
                   {errors.acepta_terminos && touched.acepta_terminos && (
@@ -829,7 +829,7 @@ const RegisterForm = () => {
                   </p>
                   <ul className="list-disc list-inside space-y-2 ml-4">
                     <li>
-                      <strong>Responsable:</strong> MEDINET - Sistema de Gestión
+                      <strong>Responsable:</strong> MediNet - Sistema de Gestión
                       Médica
                     </li>
                     <li>

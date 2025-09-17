@@ -508,7 +508,7 @@ const HomePage = () => {
             ¿Listo para transformar tu práctica médica?
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Únete a cientos de profesionales que ya confían en MEDINET para
+            Únete a cientos de profesionales que ya confían en MediNet para
             gestionar su consulta médica de manera eficiente y segura.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
