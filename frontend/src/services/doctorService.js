@@ -1,6 +1,16 @@
 import api from "../api/api";
 
 const doctorService = {
+  // Listar médicos
+  getDoctors: async () => {
+    try {
+      const response = await api.get("/medicos");
+      return response.data;
+    } catch (error) {
+      console.error("Error obteniendo médicos:", error);
+      throw error;
+    }
+  },
   // Actualizar perfil del médico
   updateProfile: async (medico_id, profileData) => {
     try {

@@ -11,7 +11,10 @@ const pool = mysql.createPool({
   queueLimit: 0
 });
 
-// Promisificar el pool para usar async/await
+// Promisificar el pool para usar async/await (async, la función siempre devolverá una promesa y promesa es algo que se tiene que cumplir )
+// (await, esperar que funcione el async ) 
+// (try, es intentar que todo funcione de manera correcta)
+// (catch, siempre indicara un error o que no ejecuto de manera correcta)
 const promisePool = pool.promise();
 
 // Función para testear la conexión
@@ -37,6 +40,9 @@ const executeQuery = async (query, params = []) => {
     return { success: false, error: error.message };
   }
 };
+//queries son las peticiones de la base de datos, 
+// la funcion del script es para ejecutar los queries(que son peticiones como; create, read, update y delete) 
+// recibiendo los parametros de cada peticion (campos de base de datos que recibe)
 
 // Función para transacciones
 const executeTransaction = async (queries) => {
@@ -73,3 +79,10 @@ export default {
   executeQuery,
   executeTransaction
 };
+
+//las puedo llamar de manera individual asi: "export { promisePool as pool, testConnection, executeQuery, executeTransaction };"
+//las puedo agrupar y llamar todas con un pool "export default {
+                                                //pool: promisePool,
+                                                // testConnection,
+                                                // executeQuery,
+                                                // executeTransaction"

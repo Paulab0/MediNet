@@ -5,6 +5,12 @@ import RegisterPage from "../features/auth/pages/RegisterPage";
 import DashboardPage from "../features/doctor/pages/DashboardPage";
 import ProtectedRoute from "../components/ProtectedRoute";
 import RoleRedirect from "../components/RoleRedirect";
+import AdminLayout from "../features/admin/components/AdminLayout";
+import AdminDashboardPage from "../features/admin/pages/AdminDashboardPage";
+import UsersPage from "../features/admin/pages/UsersPage";
+import DoctorsPage from "../features/admin/pages/DoctorsPage";
+import PatientsPage from "../features/admin/pages/PatientsPage";
+import AppointmentsPage from "../features/admin/pages/AppointmentsPage";
 
 const AppRoutes = () => {
   return (
@@ -29,24 +35,21 @@ const AppRoutes = () => {
         }
       />
 
-      {/* Rutas para administrador (placeholder) */}
+      {/* Rutas para administrador */}
       <Route
-        path="/admin/dashboard"
+        path="/admin"
         element={
           <ProtectedRoute requiredRole={1}>
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-              <div className="text-center">
-                <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                  Dashboard Administrador
-                </h1>
-                <p className="text-gray-600">
-                  Panel de administración en desarrollo
-                </p>
-              </div>
-            </div>
+            <AdminLayout />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route path="dashboard" element={<AdminDashboardPage />} />
+        <Route path="users" element={<UsersPage />} />
+        <Route path="doctors" element={<DoctorsPage />} />
+        <Route path="patients" element={<PatientsPage />} />
+        <Route path="appointments" element={<AppointmentsPage />} />
+      </Route>
 
       {/* Rutas para paciente (placeholder) */}
       <Route

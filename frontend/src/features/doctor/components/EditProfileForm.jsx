@@ -240,26 +240,6 @@ const EditProfileForm = ({ isOpen, onClose }) => {
                 />
               </div>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Cédula *
-              </label>
-              <input
-                type="text"
-                name="usuario_cedula"
-                value={formData.usuario_cedula}
-                onChange={handleInputChange}
-                required={isEditing}
-                disabled={!isEditing}
-                className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  isEditing
-                    ? "border-gray-300 bg-white"
-                    : "border-gray-200 bg-gray-50 text-gray-700"
-                }`}
-                placeholder="Tu número de cédula"
-              />
-            </div>
           </div>
 
           {/* Información de Contacto */}
