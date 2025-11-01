@@ -281,22 +281,16 @@ const RegisterForm = () => {
 
       const result = await authService.register(userDataToSend);
       console.log("✅ Registro exitoso:", result);
-      setSuccess("Usuario registrado exitosamente");
-
-      // Hacer login automático después del registro exitoso
-      try {
-        await login(formData.usuario_correo, formData.usuario_contrasena);
-        // Redirigir según el rol
-        if (result.medico_id) {
-          navigate("/doctor/dashboard");
-        } else {
-          navigate("/patient/dashboard");
-        }
-      } catch (loginError) {
-        console.error("Error en login automático:", loginError);
-        setError(
-          "Registro exitoso, pero error en login automático. Por favor, inicia sesión manualmente."
-        );
+      
+      // Mostrar mensaje de verificación de email
+      if (result.emailVerificationSent || result.data?.emailVerificationSent) {
+        setSuccess("¡Usuario registrado exitosamente! Por favor revisa tu email para confirmar tu cuenta antes de iniciar sesión.");
+        // Mostrar mensaje durante 5 segundos y luego redirigir al login
+        setTimeout(() => {
+          navigate("/login");
+        }, 5000);
+      } else {
+        setSuccess("Usuario registrado exitosamente");
       }
 
       // Limpiar formulario

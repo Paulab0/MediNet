@@ -2,6 +2,7 @@ import { Route, Routes, Navigate } from "react-router-dom";
 import HomePage from "../features/home/components/HomePage";
 import Login from "../features/auth/components/LoginForm";
 import RegisterPage from "../features/auth/pages/RegisterPage";
+import ConfirmEmailPage from "../features/auth/components/ConfirmEmailPage";
 import DashboardPage from "../features/doctor/pages/DashboardPage";
 import ProtectedRoute from "../components/ProtectedRoute";
 import RoleRedirect from "../components/RoleRedirect";
@@ -21,6 +22,7 @@ const AppRoutes = () => {
       {/* Rutas públicas */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/confirmar-email" element={<ConfirmEmailPage />} />
 
       {/* Ruta de redirección por rol */}
       <Route path="/dashboard" element={<RoleRedirect />} />

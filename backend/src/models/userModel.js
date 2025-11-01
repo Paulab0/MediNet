@@ -15,7 +15,7 @@ class User {
                     rol_id, identificacion_id
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
-            const [result] = await db.executeQuery(query, [
+            const result = await db.executeQuery(query, [
                 userData.usuario_nombre,
                 userData.usuario_apellido,
                 userData.usuario_edad,
@@ -29,7 +29,10 @@ class User {
                 userData.rol_id,
                 userData.identificacion_id
             ]);
-            return { success: true, insertId: result.insertId };
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return { success: true, insertId: result.data.insertId };
         } catch (error) {
             throw new Error(`Error al crear usuario: ${error.message}`);
         }
@@ -45,8 +48,11 @@ class User {
                 LEFT JOIN tipos_identificaciones ti ON u.identificacion_id = ti.identificacion_id
                 WHERE u.usuario_estado = 1
             `;
-            const [result] = await db.executeQuery(query);
-            return result;
+            const result = await db.executeQuery(query);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return result.data;
         } catch (error) {
             throw new Error(`Error al obtener usuarios: ${error.message}`);
         }
@@ -62,8 +68,11 @@ class User {
                 LEFT JOIN tipos_identificaciones ti ON u.identificacion_id = ti.identificacion_id
                 WHERE u.usuario_id = ? AND u.usuario_estado = 1
             `;
-            const [result] = await db.executeQuery(query, [usuario_id]);
-            return result[0] || null;
+            const result = await db.executeQuery(query, [usuario_id]);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return result.data[0] || null;
         } catch (error) {
             throw new Error(`Error al obtener usuario: ${error.message}`);
         }
@@ -78,8 +87,11 @@ class User {
                 LEFT JOIN roles r ON u.rol_id = r.rol_id
                 WHERE u.usuario_correo = ? AND u.usuario_estado = 1
             `;
-            const [result] = await db.executeQuery(query, [usuario_correo]);
-            return result[0] || null;
+            const result = await db.executeQuery(query, [usuario_correo]);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return result.data[0] || null;
         } catch (error) {
             throw new Error(`Error al buscar usuario por email: ${error.message}`);
         }
@@ -118,7 +130,10 @@ class User {
             values.push(usuario_id);
 
             const result = await db.executeQuery(query, values);
-            return { success: result.affectedRows > 0 };
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return { success: result.data.affectedRows > 0 };
         } catch (error) {
             throw new Error(`Error al actualizar usuario: ${error.message}`);
         }
@@ -128,8 +143,11 @@ class User {
     static async delete(usuario_id) {
         try {
             const query = `UPDATE usuarios SET usuario_estado = 0 WHERE usuario_id = ?`;
-            const [result] = await db.executeQuery(query, [usuario_id]);
-            return { success: result.affectedRows > 0 };
+            const result = await db.executeQuery(query, [usuario_id]);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return { success: result.data.affectedRows > 0 };
         } catch (error) {
             throw new Error(`Error al eliminar usuario: ${error.message}`);
         }
@@ -150,8 +168,11 @@ class User {
                 LEFT JOIN tipos_identificaciones ti ON u.identificacion_id = ti.identificacion_id
                 WHERE u.rol_id = ? AND u.usuario_estado = 1
             `;
-            const [result] = await db.executeQuery(query, [rol_id]);
-            return result;
+            const result = await db.executeQuery(query, [rol_id]);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return result.data;
         } catch (error) {
             throw new Error(`Error al obtener usuarios por rol: ${error.message}`);
         }

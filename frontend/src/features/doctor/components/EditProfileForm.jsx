@@ -3,7 +3,6 @@ import {
   XMarkIcon,
   UserIcon,
   EnvelopeIcon,
-  PhoneIcon,
   IdentificationIcon,
   AcademicCapIcon,
   CheckIcon,
@@ -23,7 +22,6 @@ const EditProfileForm = ({ isOpen, onClose }) => {
     usuario_apellido: "",
     usuario_correo: "",
     usuario_telefono: "",
-    usuario_cedula: "",
     especialidad_id: "",
     especialidad_nombre: "",
   });
@@ -43,7 +41,6 @@ const EditProfileForm = ({ isOpen, onClose }) => {
         usuario_apellido: user.usuario_apellido || "",
         usuario_correo: user.usuario_correo || "",
         usuario_telefono: user.usuario_telefono || "",
-        usuario_cedula: user.usuario_cedula || "",
         especialidad_id: user.especialidad_id || "",
         especialidad_nombre: user.especialidad_nombre || "",
       });
@@ -53,6 +50,7 @@ const EditProfileForm = ({ isOpen, onClose }) => {
   const loadSpecialties = async () => {
     try {
       const data = await specialtyService.getSpecialties();
+      console.log("Especialidades cargadas:", data);
       setSpecialties(data);
     } catch (error) {
       console.error("Error cargando especialidades:", error);
@@ -72,7 +70,6 @@ const EditProfileForm = ({ isOpen, onClose }) => {
         usuario_apellido: user.usuario_apellido || "",
         usuario_correo: user.usuario_correo || "",
         usuario_telefono: user.usuario_telefono || "",
-        usuario_cedula: user.usuario_cedula || "",
         especialidad_id: user.especialidad_id || "",
         especialidad_nombre: user.especialidad_nombre || "",
       });
@@ -106,7 +103,6 @@ const EditProfileForm = ({ isOpen, onClose }) => {
         usuario_apellido: formData.usuario_apellido,
         usuario_correo: formData.usuario_correo,
         usuario_telefono: formData.usuario_telefono,
-        usuario_cedula: formData.usuario_cedula,
         especialidad_id: formData.especialidad_id,
       };
 
@@ -128,7 +124,11 @@ const EditProfileForm = ({ isOpen, onClose }) => {
       // Actualizar el contexto de usuario con los datos actualizados
       updateUser({
         ...user,
-        ...formData,
+        usuario_nombre: formData.usuario_nombre,
+        usuario_apellido: formData.usuario_apellido,
+        usuario_correo: formData.usuario_correo,
+        usuario_telefono: formData.usuario_telefono,
+        especialidad_id: formData.especialidad_id,
         especialidad_nombre,
       });
 
@@ -313,38 +313,9 @@ const EditProfileForm = ({ isOpen, onClose }) => {
       }`}
     >
       <option value="">Selecciona una especialidad</option>
-      {[
-        { id: 1, nombre: "Anestesiología" },
-        { id: 2, nombre: "Cardiología" },
-        { id: 3, nombre: "Cirugía General" },
-        { id: 4, nombre: "Cirugía Plástica" },
-        { id: 5, nombre: "Dermatología" },
-        { id: 6, nombre: "Endocrinología" },
-        { id: 7, nombre: "Geriatría" },
-        { id: 8, nombre: "Genética Médica" },
-        { id: 9, nombre: "Ginecología y Obstetricia" },
-        { id: 10, nombre: "Infectología" },
-        { id: 11, nombre: "Medicina del Deporte" },
-        { id: 12, nombre: "Medicina Familiar" },
-        { id: 13, nombre: "Medicina General" },
-        { id: 14, nombre: "Medicina Intensiva" },
-        { id: 15, nombre: "Medicina Interna" },
-        { id: 16, nombre: "Nefrología" },
-        { id: 17, nombre: "Neumología" },
-        { id: 18, nombre: "Neurología" },
-        { id: 19, nombre: "Oftalmología" },
-        { id: 20, nombre: "Oncología" },
-        { id: 21, nombre: "Ortopedia y Traumatología" },
-        { id: 22, nombre: "Otorrinolaringología" },
-        { id: 23, nombre: "Patología" },
-        { id: 24, nombre: "Pediatría" },
-        { id: 25, nombre: "Psiquiatría" },
-        { id: 26, nombre: "Radiología" },
-        { id: 27, nombre: "Reumatología" },
-        { id: 28, nombre: "Urología" },
-      ].map((specialty) => (
-        <option key={specialty.id} value={specialty.id}>
-          {specialty.nombre}
+      {specialties.map((specialty) => (
+        <option key={specialty.especialidad_id} value={specialty.especialidad_id}>
+          {specialty.especialidad_nombre}
         </option>
       ))}
     </select>

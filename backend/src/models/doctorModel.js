@@ -8,12 +8,15 @@ class Doctor {
                 INSERT INTO medicos (usuario_id, especialidad_id, medico_estado) 
                 VALUES (?, ?, ?)
             `;
-      const [result] = await db.executeQuery(query, [
+      const result = await db.executeQuery(query, [
         medicoData.usuario_id,
         medicoData.especialidad_id,
         medicoData.medico_estado || 1,
       ]);
-      return { success: true, insertId: result.insertId };
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      return { success: true, insertId: result.data.insertId };
     } catch (error) {
       throw new Error(`Error al crear médico: ${error.message}`);
     }
@@ -33,8 +36,11 @@ class Doctor {
                 LEFT JOIN especialidades e ON m.especialidad_id = e.especialidad_id
                 WHERE m.medico_estado = 1 AND u.usuario_estado = 1
             `;
-      const [result] = await db.executeQuery(query);
-      return result;
+      const result = await db.executeQuery(query);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      return result.data;
     } catch (error) {
       throw new Error(`Error al obtener médicos: ${error.message}`);
     }
@@ -55,8 +61,11 @@ class Doctor {
                 LEFT JOIN especialidades e ON m.especialidad_id = e.especialidad_id
                 WHERE m.medico_id = ? AND m.medico_estado = 1
             `;
-      const [result] = await db.executeQuery(query, [medico_id]);
-      return result[0] || null;
+      const result = await db.executeQuery(query, [medico_id]);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      return result.data[0] || null;
     } catch (error) {
       throw new Error(`Error al obtener médico: ${error.message}`);
     }
@@ -76,8 +85,11 @@ class Doctor {
                 LEFT JOIN especialidades e ON m.especialidad_id = e.especialidad_id
                 WHERE m.usuario_id = ? AND m.medico_estado = 1
             `;
-      const [result] = await db.executeQuery(query, [usuario_id]);
-      return result[0] || null;
+      const result = await db.executeQuery(query, [usuario_id]);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      return result.data[0] || null;
     } catch (error) {
       throw new Error(`Error al obtener médico por usuario: ${error.message}`);
     }
@@ -91,12 +103,15 @@ class Doctor {
                     especialidad_id = ?, medico_estado = ?
                 WHERE medico_id = ?
             `;
-      const [result] = await db.executeQuery(query, [
+      const result = await db.executeQuery(query, [
         medicoData.especialidad_id,
         medicoData.medico_estado,
         medico_id,
       ]);
-      return { success: result.affectedRows > 0 };
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      return { success: result.data.affectedRows > 0 };
     } catch (error) {
       throw new Error(`Error al actualizar médico: ${error.message}`);
     }
@@ -106,8 +121,11 @@ class Doctor {
   static async delete(medico_id) {
     try {
       const query = `UPDATE medicos SET medico_estado = 0 WHERE medico_id = ?`;
-      const [result] = await db.executeQuery(query, [medico_id]);
-      return { success: result.affectedRows > 0 };
+      const result = await db.executeQuery(query, [medico_id]);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      return { success: result.data.affectedRows > 0 };
     } catch (error) {
       throw new Error(`Error al eliminar médico: ${error.message}`);
     }
@@ -127,8 +145,11 @@ class Doctor {
                 LEFT JOIN especialidades e ON m.especialidad_id = e.especialidad_id
                 WHERE m.especialidad_id = ? AND m.medico_estado = 1 AND u.usuario_estado = 1
             `;
-      const [result] = await db.executeQuery(query, [especialidad_id]);
-      return result;
+      const result = await db.executeQuery(query, [especialidad_id]);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      return result.data;
     } catch (error) {
       throw new Error(
         `Error al obtener médicos por especialidad: ${error.message}`
@@ -152,8 +173,11 @@ class Doctor {
 
       query += ` ORDER BY disponibilidad_fecha, disponibilidad_hora`;
 
-      const [result] = await db.executeQuery(query, params);
-      return result;
+      const result = await db.executeQuery(query, params);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      return result.data;
     } catch (error) {
       throw new Error(
         `Error al obtener disponibilidad del médico: ${error.message}`
@@ -267,11 +291,18 @@ class Doctor {
         queries.map((query) => db.executeQuery(query, [medico_id]))
       );
 
+      // Verificar que todas las consultas fueron exitosas
+      for (let i = 0; i < results.length; i++) {
+        if (!results[i].success) {
+          throw new Error(`Error en consulta ${i + 1}: ${results[i].error}`);
+        }
+      }
+
       return {
-        total_citas: results[0][0][0].total_citas,
-        total_pacientes: results[1][0][0].total_pacientes,
-        citas_hoy: results[2][0][0].citas_hoy,
-        disponibilidad_hoy: results[3][0][0].disponibilidad_hoy,
+        total_citas: results[0].data[0].total_citas,
+        total_pacientes: results[1].data[0].total_pacientes,
+        citas_hoy: results[2].data[0].citas_hoy,
+        disponibilidad_hoy: results[3].data[0].disponibilidad_hoy,
       };
     } catch (error) {
       throw new Error(
@@ -481,7 +512,7 @@ class Doctor {
       const updateUserQuery = `
         UPDATE usuarios 
         SET usuario_nombre = ?, usuario_apellido = ?, usuario_correo = ?, 
-            usuario_telefono = ?, usuario_identificacion = ?
+            usuario_telefono = ?
         WHERE usuario_id = ? AND usuario_estado = 1
       `;
 
@@ -490,7 +521,6 @@ class Doctor {
         profileData.usuario_apellido,
         profileData.usuario_correo,
         profileData.usuario_telefono,
-        profileData.usuario_cedula,
         usuario_id,
       ]);
 

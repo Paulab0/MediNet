@@ -41,8 +41,8 @@ const DoctorsPage = () => {
               doctors.map((d) => (
                 <tr key={d.medico_id} className="border-t border-gray-100">
                   <td className="px-4 py-2">{d.medico_id}</td>
-                  <td className="px-4 py-2">{d.medico_nombre} {d.medico_apellido}</td>
-                  <td className="px-4 py-2">{d.especialidad_nombre || d.especialidad_id}</td>
+                  <td className="px-4 py-2">{d.usuario_nombre || 'Sin nombre'} {d.usuario_apellido || ''}</td>
+                  <td className="px-4 py-2">{d.especialidad_nombre || 'Sin especialidad'}</td>
                   <td className="px-4 py-2">{d.medico_estado === 1 ? "Activo" : "Inactivo"}</td>
                 </tr>
               ))

@@ -77,7 +77,7 @@ const UsersPage = () => {
                   <td className="px-4 py-2">{u.usuario_id}</td>
                   <td className="px-4 py-2">{u.usuario_nombre} {u.usuario_apellido}</td>
                   <td className="px-4 py-2">{u.usuario_correo}</td>
-                  <td className="px-4 py-2">{u.rol_nombre || u.rol_id}</td>
+                  <td className="px-4 py-2">{u.rol_nombre || 'Sin rol'}</td>
                   <td className="px-4 py-2 flex items-center gap-2">
                     <button onClick={() => openEdit(u)} className="px-2 py-1 border rounded-md text-gray-700 text-xs">Editar</button>
                     <button onClick={() => handleDelete(u)} className="px-2 py-1 border border-red-300 bg-red-50 text-red-700 rounded-md text-xs">Eliminar</button>

@@ -1,6 +1,8 @@
 import db from "../../database/connectiondb.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import EmailVerification from "./emailVerificationModel.js";
+import emailService from "../services/emailService.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "medinet_secret_key";
 const JWT_EXPIRES_IN = "8h";
@@ -108,6 +110,29 @@ class Auth {
         }
       }
 
+      // Crear y enviar token de verificación de email
+      let emailSent = false;
+      try {
+        const tokenResult = await EmailVerification.createToken(
+          insertId,
+          "verificacion"
+        );
+        if (tokenResult.success) {
+          await emailService.sendConfirmationEmail(
+            usuario_correo,
+            `${usuario_nombre} ${usuario_apellido}`,
+            tokenResult.token
+          );
+          emailSent = true;
+        }
+      } catch (emailError) {
+        // Si falla el envío de email, registrar el error pero no fallar el registro
+        console.error(
+          "⚠️ Error enviando email de verificación:",
+          emailError.message
+        );
+      }
+
       const token = jwt.sign(
         { usuario_id: insertId, usuario_correo, rol_id },
         JWT_SECRET,
@@ -120,7 +145,10 @@ class Auth {
         usuario_nombre,
         usuario_correo,
         token,
-        message: "Usuario creado exitosamente",
+        emailVerificationSent: emailSent,
+        message: emailSent
+          ? "Usuario creado exitosamente. Revisa tu email para confirmar tu cuenta."
+          : "Usuario creado exitosamente",
       };
     } catch (error) {
       throw new Error(`Error al crear usuario: ${error.message}`);
@@ -136,6 +164,14 @@ class Auth {
       }
       if (user.usuario_estado === 0) {
         return { success: false, message: "Usuario desactivado" };
+      }
+      // Verificar si el email está verificado
+      if (!user.usuario_email_verificado) {
+        return {
+          success: false,
+          message: "Por favor verifica tu email antes de iniciar sesión",
+          requiresEmailVerification: true,
+        };
       }
       const passwordMatch = await bcrypt.compare(
         usuario_contrasena,

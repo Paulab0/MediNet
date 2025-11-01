@@ -33,7 +33,7 @@ const AdminDashboardPage = () => {
           appointments: Array.isArray(appointments) ? appointments.length : appointments?.data?.length || 0,
         });
       } catch {
-        // fallback silencioso
+        // Error silencioso - los KPIs se mantienen en 0
       } finally {
         setLoading(false);
       }

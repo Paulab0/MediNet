@@ -1,4 +1,5 @@
 import db from "../../database/connectiondb.js";
+import Reminder from "./reminderModel.js";
 
 class Appointment {
   // Crear cita
@@ -24,6 +25,22 @@ class Appointment {
         throw new Error(result.error);
       }
 
+      // Crear recordatorios automáticos para la cita
+      // Recordatorio 1 día antes (1440 minutos)
+      // Recordatorio 1 hora antes (60 minutos)
+      // Recordatorio 30 minutos antes
+      try {
+        await Promise.all([
+          Reminder.createForAppointment(citaData.medico_id, citaData.cita_fecha, citaData.cita_hora, 1440), // 1 día antes
+          Reminder.createForAppointment(citaData.medico_id, citaData.cita_fecha, citaData.cita_hora, 60),  // 1 hora antes
+          Reminder.createForAppointment(citaData.medico_id, citaData.cita_fecha, citaData.cita_hora, 30),  // 30 minutos antes
+        ]);
+        console.log(`✅ Recordatorios creados para la cita ${result.data.insertId}`);
+      } catch (reminderError) {
+        // Si falla la creación de recordatorios, no falla la creación de la cita
+        console.warn(`⚠️ No se pudieron crear los recordatorios: ${reminderError.message}`);
+      }
+
       return { success: true, insertId: result.data.insertId };
     } catch (error) {
       throw new Error(`Error al crear cita: ${error.message}`);
@@ -35,18 +52,26 @@ class Appointment {
     try {
       console.log("🔍 [AppointmentModel] Obteniendo todas las citas...");
 
-      // Consulta simplificada primero
       const query = `
                 SELECT 
                     c.cita_id, c.cita_fecha, c.cita_hora, c.cita_estado,
                     c.medico_id, c.paciente_id,
                     c.cita_tipo, c.cita_observaciones,
+                    um.usuario_nombre as medico_nombre, um.usuario_apellido as medico_apellido,
+                    e.especialidad_nombre,
+                    up.usuario_nombre as paciente_nombre, up.usuario_apellido as paciente_apellido,
+                    up.usuario_telefono,
                     CASE 
                         WHEN c.cita_estado IN ('Completada', 'Cancelada') THEN c.cita_estado
                         WHEN c.cita_fecha < CURDATE() OR (c.cita_fecha = CURDATE() AND c.cita_hora < CURTIME()) THEN 'Completada'
                         ELSE 'Pendiente'
                     END as estado_calculado
                 FROM citas c
+                LEFT JOIN medicos m ON c.medico_id = m.medico_id
+                LEFT JOIN usuarios um ON m.usuario_id = um.usuario_id
+                LEFT JOIN especialidades e ON m.especialidad_id = e.especialidad_id
+                LEFT JOIN pacientes p ON c.paciente_id = p.paciente_id
+                LEFT JOIN usuarios up ON p.usuario_id = up.usuario_id
                 ORDER BY c.cita_fecha DESC, c.cita_hora DESC
             `;
 

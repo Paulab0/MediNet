@@ -13,6 +13,7 @@ import {
   UserGroupIcon,
 } from "@heroicons/react/24/outline";
 import appointmentService from "../../../services/appointmentService";
+import reminderService from "../../../services/reminderService";
 import { useAuth } from "../../../contexts/AuthContext";
 
 const NotificationsView = () => {
@@ -24,8 +25,19 @@ const NotificationsView = () => {
   const { user } = useAuth();
 
   useEffect(() => {
+    // Solicitar permiso para notificaciones del navegador
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
     if (user?.medico_id) {
       loadNotifications();
+      // Actualizar notificaciones cada minuto
+      const interval = setInterval(() => {
+        loadNotifications();
+      }, 60000); // 60 segundos
+
+      return () => clearInterval(interval);
     }
   }, [user]);
 
@@ -37,26 +49,33 @@ const NotificationsView = () => {
         user.medico_id
       );
 
-      // Obtener citas del médico para diferentes períodos
-      const [todayAppointments, weekAppointments, allAppointments] =
-        await Promise.all([
-          appointmentService.getDoctorAppointments(user.medico_id, "Hoy"),
-          appointmentService.getDoctorAppointments(
-            user.medico_id,
-            "Esta semana"
-          ),
-          appointmentService.getDoctorAppointments(user.medico_id, "Este mes"),
-        ]);
+      // Obtener citas y recordatorios del médico
+      const [appointments, reminders] = await Promise.all([
+        appointmentService.getDoctorAppointments(user.medico_id, "Este mes"),
+        reminderService.getPendingReminders(user.medico_id),
+      ]);
 
-      console.log("📊 [NotificationsView] Citas cargadas:", {
-        hoy: todayAppointments.length,
-        semana: weekAppointments.length,
-        mes: allAppointments.length,
+      console.log("📊 [NotificationsView] Datos cargados:", {
+        citas: appointments.length,
+        recordatorios: reminders.length,
       });
 
-      // Generar notificaciones basadas en las citas
-      const generatedNotifications = generateNotifications(allAppointments);
+      // Generar notificaciones basadas en citas y recordatorios
+      const generatedNotifications = generateNotificationsFromAppointmentsAndReminders(appointments, reminders);
       setNotifications(generatedNotifications);
+
+      // Mostrar notificaciones del navegador para recordatorios urgentes
+      if ('Notification' in window && Notification.permission === 'granted') {
+        generatedNotifications
+          .filter((n) => n.priority === 'urgent' && !n.read)
+          .forEach((notification) => {
+            new Notification(notification.title, {
+              body: notification.message,
+              icon: '/favicon.ico',
+              tag: notification.id,
+            });
+          });
+      }
     } catch (error) {
       console.error(
         "❌ [NotificationsView] Error cargando notificaciones:",
@@ -67,92 +86,180 @@ const NotificationsView = () => {
     }
   };
 
-  const generateNotifications = (appointments) => {
+  const generateNotificationsFromAppointmentsAndReminders = (appointments, reminders) => {
     const now = new Date();
     const notifications = [];
+    const processedReminders = new Set();
 
     console.log(
       "🔍 [NotificationsView] Generando notificaciones para",
       appointments.length,
-      "citas"
+      "citas y",
+      reminders.length,
+      "recordatorios"
     );
 
-    appointments.forEach((appointment) => {
-      const appointmentDate = new Date(appointment.cita_fecha);
-      const appointmentDateTime = new Date(
-        `${appointment.cita_fecha}T${appointment.cita_hora}`
+    // Procesar recordatorios activos (próximos a ejecutarse o recientemente ejecutados)
+    reminders.forEach((reminder) => {
+      const reminderDateTime = new Date(
+        `${reminder.recordatorio_fecha}T${reminder.recordatorio_hora}`
       );
-      const timeDiff = appointmentDateTime.getTime() - now.getTime();
-      const hoursUntilAppointment = timeDiff / (1000 * 60 * 60);
-      const minutesUntilAppointment = timeDiff / (1000 * 60);
+      const timeDiff = reminderDateTime.getTime() - now.getTime();
+      const minutesUntilReminder = timeDiff / (1000 * 60);
 
-      // Obtener nombre completo del paciente
-      const patientName = `${appointment.paciente_nombre || "Paciente"} ${
-        appointment.paciente_apellido || ""
-      }`.trim();
+      // Si el recordatorio está dentro de los próximos 30 minutos o ya pasó hace menos de 30 minutos
+      if (minutesUntilReminder >= -30 && minutesUntilReminder <= 30) {
+        // Buscar la cita asociada (aproximada por fecha/hora del recordatorio)
+        const associatedAppointment = appointments.find((appt) => {
+          const apptDateTime = new Date(`${appt.cita_fecha}T${appt.cita_hora}`);
+          // El recordatorio debería ser antes de la cita (30 min, 1 hora, o 1 día)
+          const reminderToApptDiff = apptDateTime.getTime() - reminderDateTime.getTime();
+          return reminderToApptDiff > 0 && reminderToApptDiff <= 1440000; // 24 horas en ms
+        });
 
-      // Solo procesar citas pendientes o confirmadas de hoy
+        if (associatedAppointment) {
+          const patientName = `${associatedAppointment.paciente_nombre || "Paciente"} ${
+            associatedAppointment.paciente_apellido || ""
+          }`.trim();
+
+          const appointmentDateTime = new Date(
+            `${associatedAppointment.cita_fecha}T${associatedAppointment.cita_hora}`
+          );
+          const minutesUntilAppointment = (appointmentDateTime.getTime() - now.getTime()) / (1000 * 60);
+
+          let notificationType = "upcoming";
+          let title = "Recordatorio de Cita";
+          let message = `Tienes una cita con ${patientName} próximamente`;
+          let priority = "medium";
+
+          if (minutesUntilAppointment <= 30 && minutesUntilAppointment >= 0) {
+            notificationType = "pending";
+            title = "Cita Próxima";
+            message = `El paciente ${patientName} tiene cita en ${Math.round(minutesUntilAppointment)} minutos`;
+            priority = "high";
+          } else if (minutesUntilAppointment < 0 && minutesUntilAppointment >= -30) {
+            notificationType = "overdue";
+            title = "Cita en Progreso";
+            message = `El paciente ${patientName} tenía cita hace ${Math.round(Math.abs(minutesUntilAppointment))} minutos`;
+            priority = "urgent";
+          } else if (minutesUntilAppointment > 30 && minutesUntilAppointment <= 60) {
+            notificationType = "soon";
+            title = "Recordatorio: Cita en 1 Hora";
+            message = `El paciente ${patientName} tiene cita en aproximadamente ${Math.round(minutesUntilAppointment)} minutos`;
+            priority = "medium";
+          } else if (minutesUntilAppointment > 60 && minutesUntilAppointment <= 1440) {
+            notificationType = "upcoming";
+            title = "Recordatorio: Cita Mañana";
+            message = `El paciente ${patientName} tiene cita mañana`;
+            priority = "low";
+          }
+
+          notifications.push({
+            id: `reminder-${reminder.recordatorio_id}-${associatedAppointment.cita_id}`,
+            type: notificationType,
+            title,
+            message,
+            time: reminderDateTime,
+            appointment: associatedAppointment,
+            reminder: reminder,
+            priority,
+            read: false,
+            status: "reminder_active",
+            minutesUntil: minutesUntilAppointment >= 0 ? Math.round(minutesUntilAppointment) : undefined,
+            minutesOverdue: minutesUntilAppointment < 0 ? Math.round(Math.abs(minutesUntilAppointment)) : undefined,
+          });
+
+          processedReminders.add(associatedAppointment.cita_id);
+        }
+      }
+    });
+
+    // Procesar citas que no tienen recordatorios procesados pero están próximas
+    appointments.forEach((appointment) => {
       if (
         appointment.cita_estado === "Pendiente" ||
         appointment.cita_estado === "Confirmada"
       ) {
-        // Cita que está por comenzar (en los próximos 30 minutos)
-        if (minutesUntilAppointment >= 0 && minutesUntilAppointment <= 30) {
-          notifications.push({
-            id: `pending-${appointment.cita_id}`,
-            type: "pending",
-            title: "Cita por Comenzar",
-            message: `El paciente ${patientName} tiene cita en ${Math.round(
-              minutesUntilAppointment
-            )} minutos`,
-            time: appointmentDateTime,
-            appointment: appointment,
-            priority: "high",
-            read: false,
-            status: "pending_confirmation",
-            minutesUntil: Math.round(minutesUntilAppointment),
-          });
-        }
+        const appointmentDateTime = new Date(
+          `${appointment.cita_fecha}T${appointment.cita_hora}`
+        );
+        const timeDiff = appointmentDateTime.getTime() - now.getTime();
+        const minutesUntilAppointment = timeDiff / (1000 * 60);
 
-        // Cita que ya debería haber comenzado (hace menos de 30 minutos)
-        else if (
-          minutesUntilAppointment < 0 &&
-          minutesUntilAppointment >= -30
-        ) {
-          notifications.push({
-            id: `overdue-${appointment.cita_id}`,
-            type: "overdue",
-            title: "Cita en Progreso",
-            message: `El paciente ${patientName} tenía cita hace ${Math.round(
-              Math.abs(minutesUntilAppointment)
-            )} minutos`,
-            time: appointmentDateTime,
-            appointment: appointment,
-            priority: "urgent",
-            read: false,
-            status: "waiting_confirmation",
-            minutesOverdue: Math.round(Math.abs(minutesUntilAppointment)),
-          });
+        const patientName = `${appointment.paciente_nombre || "Paciente"} ${
+          appointment.paciente_apellido || ""
+        }`.trim();
+
+        // Solo agregar si no tiene un recordatorio procesado
+        if (!processedReminders.has(appointment.cita_id)) {
+          // Cita que está por comenzar (en los próximos 30 minutos)
+          if (minutesUntilAppointment >= 0 && minutesUntilAppointment <= 30) {
+            notifications.push({
+              id: `pending-${appointment.cita_id}`,
+              type: "pending",
+              title: "Cita por Comenzar",
+              message: `El paciente ${patientName} tiene cita en ${Math.round(
+                minutesUntilAppointment
+              )} minutos`,
+              time: appointmentDateTime,
+              appointment: appointment,
+              priority: "high",
+              read: false,
+              status: "pending_confirmation",
+              minutesUntil: Math.round(minutesUntilAppointment),
+            });
+          }
+
+          // Cita que ya debería haber comenzado (hace menos de 30 minutos)
+          else if (
+            minutesUntilAppointment < 0 &&
+            minutesUntilAppointment >= -30
+          ) {
+            notifications.push({
+              id: `overdue-${appointment.cita_id}`,
+              type: "overdue",
+              title: "Cita en Progreso",
+              message: `El paciente ${patientName} tenía cita hace ${Math.round(
+                Math.abs(minutesUntilAppointment)
+              )} minutos`,
+              time: appointmentDateTime,
+              appointment: appointment,
+              priority: "urgent",
+              read: false,
+              status: "waiting_confirmation",
+              minutesOverdue: Math.round(Math.abs(minutesUntilAppointment)),
+            });
+          }
         }
       }
 
       // Citas completadas recientemente (últimas 2 horas)
       if (
-        appointment.cita_estado === "Completada" &&
-        minutesUntilAppointment >= -120 &&
-        minutesUntilAppointment <= 0
+        appointment.cita_estado === "Completada"
       ) {
-        notifications.push({
-          id: `completed-${appointment.cita_id}`,
-          type: "completed",
-          title: "Cita Completada",
-          message: `La cita con ${patientName} ha sido completada exitosamente`,
-          time: appointmentDateTime,
-          appointment: appointment,
-          priority: "low",
-          read: false,
-          status: "completed",
-        });
+        const appointmentDateTime = new Date(
+          `${appointment.cita_fecha}T${appointment.cita_hora}`
+        );
+        const timeDiff = appointmentDateTime.getTime() - now.getTime();
+        const minutesUntilAppointment = timeDiff / (1000 * 60);
+
+        if (minutesUntilAppointment >= -120 && minutesUntilAppointment <= 0) {
+          const patientName = `${appointment.paciente_nombre || "Paciente"} ${
+            appointment.paciente_apellido || ""
+          }`.trim();
+
+          notifications.push({
+            id: `completed-${appointment.cita_id}`,
+            type: "completed",
+            title: "Cita Completada",
+            message: `La cita con ${patientName} ha sido completada exitosamente`,
+            time: appointmentDateTime,
+            appointment: appointment,
+            priority: "low",
+            read: false,
+            status: "completed",
+          });
+        }
       }
     });
 
@@ -167,7 +274,7 @@ const NotificationsView = () => {
       if (priorityOrder[a.priority] !== priorityOrder[b.priority]) {
         return priorityOrder[a.priority] - priorityOrder[b.priority];
       }
-      return b.time - a.time;
+      return a.time - b.time; // Ordenar por tiempo ascendente (más próximos primero)
     });
   };
 
@@ -220,13 +327,21 @@ const NotificationsView = () => {
     });
   };
 
-  const markAsRead = (notificationId) => {
+  const markAsRead = async (notificationId) => {
     setNotifications((prev) =>
-      prev.map((notification) =>
-        notification.id === notificationId
-          ? { ...notification, read: true }
-          : notification
-      )
+      prev.map((notification) => {
+        if (notification.id === notificationId) {
+          // Si tiene un recordatorio asociado, marcarlo como completado
+          if (notification.reminder?.recordatorio_id) {
+            reminderService.markAsCompleted(notification.reminder.recordatorio_id)
+              .catch((error) => {
+                console.error("Error marcando recordatorio como completado:", error);
+              });
+          }
+          return { ...notification, read: true };
+        }
+        return notification;
+      })
     );
   };
 
@@ -307,6 +422,10 @@ const NotificationsView = () => {
 
   const filteredNotifications = notifications.filter((notification) => {
     if (filter === "all") return true;
+    if (filter === "pending") {
+      // Incluir pending, overdue, soon y upcoming en el filtro de pendientes
+      return ["pending", "overdue", "soon", "upcoming"].includes(notification.type);
+    }
     return notification.type === filter;
   });
 
@@ -335,7 +454,7 @@ const NotificationsView = () => {
               <div className="text-2xl font-bold text-blue-900">
                 {
                   notifications.filter(
-                    (n) => n.type === "pending" || n.type === "overdue"
+                    (n) => ["pending", "overdue", "soon", "upcoming"].includes(n.type)
                   ).length
                 }
               </div>
@@ -355,7 +474,7 @@ const NotificationsView = () => {
               key: "pending",
               label: "Pendientes",
               count: notifications.filter(
-                (n) => n.type === "pending" || n.type === "overdue"
+                (n) => ["pending", "overdue", "soon", "upcoming"].includes(n.type)
               ).length,
             },
             {
@@ -417,10 +536,14 @@ const NotificationsView = () => {
               {filteredNotifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`group relative bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 border transition-all duration-300 ${
-                    notification.type === "pending" ||
-                    notification.type === "overdue"
+                  onClick={() => markAsRead(notification.id)}
+                  className={`group relative bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 border transition-all duration-300 cursor-pointer ${
+                    notification.read ? "opacity-75" : ""
+                  } ${
+                    (["pending", "overdue", "soon"].includes(notification.type))
                       ? "border-orange-200 hover:border-orange-300 hover:shadow-lg"
+                      : notification.type === "upcoming"
+                      ? "border-blue-200 hover:border-blue-300 hover:shadow-lg"
                       : notification.type === "confirmed"
                       ? "border-blue-200 hover:border-blue-300 hover:shadow-lg"
                       : "border-green-200 hover:border-green-300 hover:shadow-lg"
@@ -430,9 +553,10 @@ const NotificationsView = () => {
                   <div className="absolute top-4 right-4">
                     <div
                       className={`w-3 h-3 rounded-full ${
-                        notification.type === "pending" ||
-                        notification.type === "overdue"
+                        (["pending", "overdue", "soon"].includes(notification.type))
                           ? "bg-orange-500 animate-pulse"
+                          : notification.type === "upcoming"
+                          ? "bg-blue-500"
                           : notification.type === "confirmed"
                           ? "bg-blue-500"
                           : "bg-green-500"
@@ -445,17 +569,19 @@ const NotificationsView = () => {
                     <div className="flex items-start space-x-4">
                       <div
                         className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                          notification.type === "pending" ||
-                          notification.type === "overdue"
+                          (["pending", "overdue", "soon"].includes(notification.type))
                             ? "bg-gradient-to-br from-orange-100 to-orange-200"
+                            : notification.type === "upcoming"
+                            ? "bg-gradient-to-br from-blue-100 to-blue-200"
                             : notification.type === "confirmed"
                             ? "bg-gradient-to-br from-blue-100 to-blue-200"
                             : "bg-gradient-to-br from-green-100 to-green-200"
                         }`}
                       >
-                        {notification.type === "pending" ||
-                        notification.type === "overdue" ? (
+                        {(["pending", "overdue", "soon"].includes(notification.type)) ? (
                           <ClockIcon className="w-6 h-6 text-orange-600" />
+                        ) : notification.type === "upcoming" ? (
+                          <CalendarIcon className="w-6 h-6 text-blue-600" />
                         ) : notification.type === "confirmed" ? (
                           <UserGroupIcon className="w-6 h-6 text-blue-600" />
                         ) : (
@@ -509,15 +635,15 @@ const NotificationsView = () => {
                     </div>
 
                     {/* Botones de acción */}
-                    {notification.type === "pending" ||
-                    notification.type === "overdue" ? (
+                    {(["pending", "overdue", "soon"].includes(notification.type)) ? (
                       <div className="flex space-x-3">
                         <button
-                          onClick={() =>
+                          onClick={(e) => {
+                            e.stopPropagation();
                             handleConfirmArrival(
                               notification.appointment.cita_id
-                            )
-                          }
+                            );
+                          }}
                           disabled={updatingStatus}
                           className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50"
                         >
@@ -525,11 +651,12 @@ const NotificationsView = () => {
                           <span className="font-medium">Confirmar Llegada</span>
                         </button>
                         <button
-                          onClick={() =>
+                          onClick={(e) => {
+                            e.stopPropagation();
                             handleMarkCompleted(
                               notification.appointment.cita_id
-                            )
-                          }
+                            );
+                          }}
                           disabled={updatingStatus}
                           className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50"
                         >
@@ -540,11 +667,12 @@ const NotificationsView = () => {
                     ) : notification.type === "confirmed" ? (
                       <div className="flex space-x-3">
                         <button
-                          onClick={() =>
+                          onClick={(e) => {
+                            e.stopPropagation();
                             handleMarkCompleted(
                               notification.appointment.cita_id
-                            )
-                          }
+                            );
+                          }}
                           disabled={updatingStatus}
                           className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50"
                         >
@@ -602,10 +730,10 @@ const NotificationsView = () => {
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-3xl font-bold text-orange-900">
+                  <div className="text-3xl font-bold text-orange-900">
                   {
                     notifications.filter(
-                      (n) => n.type === "pending" || n.type === "overdue"
+                      (n) => ["pending", "overdue", "soon", "upcoming"].includes(n.type)
                     ).length
                   }
                 </div>

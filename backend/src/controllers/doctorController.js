@@ -175,7 +175,6 @@ const doctorController = {
         usuario_apellido,
         usuario_correo,
         usuario_telefono,
-        usuario_cedula,
         especialidad_id,
       } = req.body;
 
@@ -189,7 +188,6 @@ const doctorController = {
         usuario_apellido,
         usuario_correo,
         usuario_telefono,
-        usuario_cedula,
         especialidad_id,
       });
 

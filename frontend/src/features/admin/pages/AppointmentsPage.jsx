@@ -29,14 +29,15 @@ const AppointmentsPage = () => {
               <th className="text-left px-4 py-2">ID</th>
               <th className="text-left px-4 py-2">Fecha</th>
               <th className="text-left px-4 py-2">Hora</th>
-              <th className="text-left px-4 py-2">Estado</th>
+              <th className="text-left px-4 py-2">Médico</th>
               <th className="text-left px-4 py-2">Paciente</th>
+              <th className="text-left px-4 py-2">Estado</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td className="px-4 py-4" colSpan={5}>Cargando...</td>
+                <td className="px-4 py-4" colSpan={6}>Cargando...</td>
               </tr>
             ) : (
               appointments.map((a) => (
@@ -44,8 +45,9 @@ const AppointmentsPage = () => {
                   <td className="px-4 py-2">{a.cita_id}</td>
                   <td className="px-4 py-2">{a.cita_fecha}</td>
                   <td className="px-4 py-2">{a.cita_hora}</td>
-                  <td className="px-4 py-2">{a.cita_estado}</td>
-                  <td className="px-4 py-2">{a.paciente_nombre} {a.paciente_apellido}</td>
+                  <td className="px-4 py-2">{a.medico_nombre ? `${a.medico_nombre} ${a.medico_apellido}` : 'Sin médico'}</td>
+                  <td className="px-4 py-2">{a.paciente_nombre ? `${a.paciente_nombre} ${a.paciente_apellido}` : 'Sin paciente'}</td>
+                  <td className="px-4 py-2">{a.estado_calculado || a.cita_estado}</td>
                 </tr>
               ))
             )}

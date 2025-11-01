@@ -9,13 +9,16 @@ class Reminder {
                 INSERT INTO recordatorios (medico_id, recordatorio_fecha, recordatorio_hora, recordatorio_estado) 
                 VALUES (?, ?, ?, ?)
             `;
-            const [result] = await db.executeQuery(query, [
+            const result = await db.executeQuery(query, [
                 recordatorioData.medico_id,
                 recordatorioData.recordatorio_fecha,
                 recordatorioData.recordatorio_hora,
                 recordatorioData.recordatorio_estado || 1
             ]);
-            return { success: true, insertId: result.insertId };
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return { success: true, insertId: result.data.insertId };
         } catch (error) {
             throw new Error(`Error al crear recordatorio: ${error.message}`);
         }
@@ -37,8 +40,11 @@ class Reminder {
                 WHERE r.recordatorio_estado = 1
                 ORDER BY r.recordatorio_fecha DESC, r.recordatorio_hora DESC
             `;
-            const [result] = await db.executeQuery(query);
-            return result;
+            const result = await db.executeQuery(query);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return result.data;
         } catch (error) {
             throw new Error(`Error al obtener recordatorios: ${error.message}`);
         }
@@ -59,8 +65,11 @@ class Reminder {
                 LEFT JOIN especialidades e ON m.especialidad_id = e.especialidad_id
                 WHERE r.recordatorio_id = ? AND r.recordatorio_estado = 1
             `;
-            const [result] = await db.executeQuery(query, [recordatorio_id]);
-            return result[0] || null;
+            const result = await db.executeQuery(query, [recordatorio_id]);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return result.data[0] || null;
         } catch (error) {
             throw new Error(`Error al obtener recordatorio: ${error.message}`);
         }
@@ -85,8 +94,11 @@ class Reminder {
 
             query += ` ORDER BY r.recordatorio_fecha DESC, r.recordatorio_hora DESC`;
             
-            const [result] = await db.executeQuery(query, params);
-            return result;
+            const result = await db.executeQuery(query, params);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return result.data;
         } catch (error) {
             throw new Error(`Error al obtener recordatorios por médico: ${error.message}`);
         }
@@ -109,8 +121,11 @@ class Reminder {
                 WHERE r.recordatorio_fecha = ? AND r.recordatorio_estado = 1
                 ORDER BY r.recordatorio_hora
             `;
-            const [result] = await db.executeQuery(query, [fecha]);
-            return result;
+            const result = await db.executeQuery(query, [fecha]);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return result.data;
         } catch (error) {
             throw new Error(`Error al obtener recordatorios por fecha: ${error.message}`);
         }
@@ -133,8 +148,11 @@ class Reminder {
                 WHERE r.recordatorio_fecha = CURDATE() AND r.recordatorio_estado = 1
                 ORDER BY r.recordatorio_hora
             `;
-            const [result] = await db.executeQuery(query);
-            return result;
+            const result = await db.executeQuery(query);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return result.data;
         } catch (error) {
             throw new Error(`Error al obtener recordatorios de hoy: ${error.message}`);
         }
@@ -159,8 +177,11 @@ class Reminder {
                 ORDER BY r.recordatorio_fecha ASC, r.recordatorio_hora ASC
                 LIMIT ?
             `;
-            const [result] = await db.executeQuery(query, [limit]);
-            return result;
+            const result = await db.executeQuery(query, [limit]);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return result.data;
         } catch (error) {
             throw new Error(`Error al obtener próximos recordatorios: ${error.message}`);
         }
@@ -174,13 +195,16 @@ class Reminder {
                     recordatorio_fecha = ?, recordatorio_hora = ?, recordatorio_estado = ?
                 WHERE recordatorio_id = ?
             `;
-            const [result] = await db.executeQuery(query, [
+            const result = await db.executeQuery(query, [
                 recordatorioData.recordatorio_fecha,
                 recordatorioData.recordatorio_hora,
                 recordatorioData.recordatorio_estado,
                 recordatorio_id
             ]);
-            return { success: result.affectedRows > 0 };
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return { success: result.data.affectedRows > 0 };
         } catch (error) {
             throw new Error(`Error al actualizar recordatorio: ${error.message}`);
         }
@@ -190,8 +214,11 @@ class Reminder {
     static async delete(recordatorio_id) {
         try {
             const query = `UPDATE recordatorios SET recordatorio_estado = 0 WHERE recordatorio_id = ?`;
-            const [result] = await db.executeQuery(query, [recordatorio_id]);
-            return { success: result.affectedRows > 0 };
+            const result = await db.executeQuery(query, [recordatorio_id]);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return { success: result.data.affectedRows > 0 };
         } catch (error) {
             throw new Error(`Error al eliminar recordatorio: ${error.message}`);
         }
@@ -201,8 +228,11 @@ class Reminder {
     static async markAsCompleted(recordatorio_id) {
         try {
             const query = `UPDATE recordatorios SET recordatorio_estado = 0 WHERE recordatorio_id = ?`;
-            const [result] = await db.executeQuery(query, [recordatorio_id]);
-            return { success: result.affectedRows > 0 };
+            const result = await db.executeQuery(query, [recordatorio_id]);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return { success: result.data.affectedRows > 0 };
         } catch (error) {
             throw new Error(`Error al marcar recordatorio como completado: ${error.message}`);
         }
@@ -220,8 +250,11 @@ class Reminder {
                 AND (r.recordatorio_fecha > CURDATE() OR (r.recordatorio_fecha = CURDATE() AND r.recordatorio_hora >= CURTIME()))
                 ORDER BY r.recordatorio_fecha ASC, r.recordatorio_hora ASC
             `;
-            const [result] = await db.executeQuery(query, [medico_id]);
-            return result;
+            const result = await db.executeQuery(query, [medico_id]);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return result.data;
         } catch (error) {
             throw new Error(`Error al obtener recordatorios pendientes del médico: ${error.message}`);
         }
@@ -245,8 +278,11 @@ class Reminder {
                 AND (r.recordatorio_fecha < CURDATE() OR (r.recordatorio_fecha = CURDATE() AND r.recordatorio_hora < CURTIME()))
                 ORDER BY r.recordatorio_fecha DESC, r.recordatorio_hora DESC
             `;
-            const [result] = await db.executeQuery(query);
-            return result;
+            const result = await db.executeQuery(query);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return result.data;
         } catch (error) {
             throw new Error(`Error al obtener recordatorios vencidos: ${error.message}`);
         }
@@ -256,7 +292,7 @@ class Reminder {
     static async createForAppointment(medico_id, cita_fecha, cita_hora, minutes_before = 30) {
         try {
             // Calcular fecha y hora del recordatorio
-            const citaDateTime = new Date(`${cita_fecha} ${cita_hora}`);
+            const citaDateTime = new Date(`${cita_fecha}T${cita_hora}`);
             const recordatorioDateTime = new Date(citaDateTime.getTime() - (minutes_before * 60000));
             
             const recordatorio_fecha = recordatorioDateTime.toISOString().split('T')[0];
@@ -266,12 +302,15 @@ class Reminder {
                 INSERT INTO recordatorios (medico_id, recordatorio_fecha, recordatorio_hora, recordatorio_estado) 
                 VALUES (?, ?, ?, 1)
             `;
-            const [result] = await db.executeQuery(query, [
+            const result = await db.executeQuery(query, [
                 medico_id,
                 recordatorio_fecha,
                 recordatorio_hora
             ]);
-            return { success: true, insertId: result.insertId };
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return { success: true, insertId: result.data.insertId };
         } catch (error) {
             throw new Error(`Error al crear recordatorio automático: ${error.message}`);
         }
@@ -299,11 +338,18 @@ class Reminder {
                 queries.map(query => db.executeQuery(query, params))
             );
 
+            // Verificar que todas las consultas fueron exitosas
+            for (let i = 0; i < results.length; i++) {
+                if (!results[i].success) {
+                    throw new Error(`Error en consulta ${i + 1}: ${results[i].error}`);
+                }
+            }
+
             return {
-                total_recordatorios: results[0][0][0].total_recordatorios,
-                recordatorios_hoy: results[1][0][0].recordatorios_hoy,
-                recordatorios_pendientes: results[2][0][0].recordatorios_pendientes,
-                recordatorios_vencidos: results[3][0][0].recordatorios_vencidos
+                total_recordatorios: results[0].data[0].total_recordatorios,
+                recordatorios_hoy: results[1].data[0].recordatorios_hoy,
+                recordatorios_pendientes: results[2].data[0].recordatorios_pendientes,
+                recordatorios_vencidos: results[3].data[0].recordatorios_vencidos
             };
         } catch (error) {
             throw new Error(`Error al obtener estadísticas de recordatorios: ${error.message}`);

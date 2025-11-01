@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
+import emailVerificationService from "../../../services/emailVerificationService";
 import logoImage from "../../../assets/images/logo-medinet.png";
 
 const Login = () => {
@@ -8,6 +9,8 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [requiresVerification, setRequiresVerification] = useState(false);
+  const [resendingEmail, setResendingEmail] = useState(false);
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -41,9 +44,25 @@ const Login = () => {
         }
       }
     } catch (err) {
-      setError(err.error || "Error al iniciar sesión");
+      const errorMessage = err.error || "Error al iniciar sesión";
+      setError(errorMessage);
+      setRequiresVerification(err.requiresEmailVerification || false);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    setResendingEmail(true);
+    try {
+      await emailVerificationService.resendVerificationToken(email);
+      alert("Se ha enviado un nuevo email de verificación. Por favor revisa tu bandeja de entrada.");
+      setRequiresVerification(false);
+    } catch (error) {
+      console.error("Error reenviando email:", error);
+      alert(error.response?.data?.message || "Error al reenviar el email de verificación.");
+    } finally {
+      setResendingEmail(false);
     }
   };
 
@@ -242,6 +261,23 @@ const Login = () => {
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-xl p-4">
                 <p className="text-red-600 text-center font-medium">{error}</p>
+                {requiresVerification && (
+                  <button
+                    type="button"
+                    onClick={handleResendVerification}
+                    disabled={resendingEmail}
+                    className="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {resendingEmail ? (
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Enviando...
+                      </div>
+                    ) : (
+                      "Reenviar Email de Verificación"
+                    )}
+                  </button>
+                )}
               </div>
             )}
 
