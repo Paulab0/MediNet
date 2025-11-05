@@ -1,31 +1,39 @@
 import app from "./app.js";
 import { testConnection } from "../database/connectiondb.js";
-import appointmentRouter from "./routes/appointmentRoute.js";
-import availabilityRouter from "./routes/availabilityRoute.js";
-import doctorRouter from "./routes/doctorRoute.js";
-import patientRouter from "./routes/patientRoute.js";
-import recordRouter from "./routes/recordRoute.js";
-import reminderRouter from "./routes/reminderRoute.js";
-import roleRouter from "./routes/roleRoute.js";
-import specialtyRouter from "./routes/specialtyRoute.js";
-import userRouter from "./routes/userRoute.js";
-import authRouter from "./routes/authRoutes.js";
-import historialRouter from "./routes/historialRoute.js";
-import emailVerificationRouter from "./routes/emailVerificationRoute.js";
+import appointmentRouter from "./rutas/rutaCita.js";
+import availabilityRouter from "./rutas/rutaDisponibilidad.js";
+import doctorRouter from "./rutas/rutaMedico.js";
+import patientRouter from "./rutas/rutaPaciente.js";
+import recordRouter from "./rutas/rutaRegistro.js";
+import reminderRouter from "./rutas/rutaRecordatorio.js";
+import roleRouter from "./rutas/rutaRol.js";
+import specialtyRouter from "./rutas/rutaEspecialidad.js";
+import userRouter from "./rutas/rutaUsuario.js";
+import authRouter from "./rutas/rutaAutenticacion.js";
+import historialRouter from "./rutas/rutaHistorial.js";
+import passwordResetRouter from "./rutas/rutaPasswordReset.js";
+import notificacionRouter from "./rutas/rutaNotificacion.js";
+import logActividadRouter from "./rutas/rutaLogActividad.js";
+import exportRouter from "./rutas/rutaExport.js";
+import configuracionRouter from "./rutas/rutaConfiguracion.js";
 
 // Configurar rutas
 app.use("/api/citas", appointmentRouter);
 app.use("/api/disponibilidad", availabilityRouter);
 app.use("/api/medicos", doctorRouter);
 app.use("/api/pacientes", patientRouter);
-app.use("/api/recordatorios", reminderRouter);
-app.use("/api/historiales", recordRouter);
+app.use("/api/recordatorios", recordRouter);
+app.use("/api/pendientes", reminderRouter);
 app.use("/api/roles", roleRouter);
 app.use("/api/especialidades", specialtyRouter);
 app.use("/api/usuarios", userRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/historial", historialRouter);
-app.use("/api/email-verification", emailVerificationRouter);
+app.use("/api/password-reset", passwordResetRouter);
+app.use("/api/notificaciones", notificacionRouter);
+app.use("/api/logs", logActividadRouter);
+app.use("/api/export", exportRouter);
+app.use("/api/configuracion", configuracionRouter);
 
 const PORT = process.env.PORT || 3000;
 
