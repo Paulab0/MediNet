@@ -2,6 +2,7 @@ import Appointment from "../modelos/citaModel.js";
 import emailService from "../servicios/emailService.js";
 import Notificacion from "../modelos/notificacionModel.js";
 import LogActividad from "../modelos/logActividadModel.js";
+import db from "../../database/connectiondb.js";
 
 const appointmentController = {
   // Crear cita
@@ -43,7 +44,6 @@ const appointmentController = {
               );
 
               // Obtener usuario_id del paciente para la notificación
-              const db = (await import("../../database/connectiondb.js")).default;
               const pacienteQuery = `SELECT usuario_id FROM pacientes WHERE paciente_id = ?`;
               const pacienteResult = await db.executeQuery(pacienteQuery, [citaCompleta.paciente_id]);
               

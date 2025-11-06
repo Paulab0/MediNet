@@ -25,8 +25,8 @@ app.use("/api/citas", appointmentRouter);
 app.use("/api/disponibilidad", availabilityRouter);
 app.use("/api/medicos", doctorRouter);
 app.use("/api/pacientes", patientRouter);
-app.use("/api/recordatorios", recordRouter);
-app.use("/api/pendientes", reminderRouter);
+app.use("/api/registros", recordRouter); // Historiales médicos (registros)
+app.use("/api/recordatorios", reminderRouter); // Recordatorios de citas
 app.use("/api/roles", roleRouter);
 app.use("/api/especialidades", specialtyRouter);
 app.use("/api/usuarios", userRouter);
