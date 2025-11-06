@@ -20,3 +20,4 @@ logActividadRouter.get(
 
 export default logActividadRouter;
 
+

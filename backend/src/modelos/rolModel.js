@@ -9,10 +9,13 @@ class Role {
                 INSERT INTO roles (rol_nombre) 
                 VALUES (?)
             `;
-            const [result] = await db.executeQuery(query, [
+            const result = await db.executeQuery(query, [
                 rolData.rol_nombre
             ]);
-            return { success: true, insertId: result.insertId };
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return { success: true, insertId: result.data.insertId };
         } catch (error) {
             throw new Error(`Error al crear rol: ${error.message}`);
         }
@@ -30,8 +33,11 @@ class Role {
                 GROUP BY r.rol_id, r.rol_nombre
                 ORDER BY r.rol_id
             `;
-            const [result] = await db.executeQuery(query);
-            return result;
+            const result = await db.executeQuery(query);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return result.data || [];
         } catch (error) {
             throw new Error(`Error al obtener roles: ${error.message}`);
         }
@@ -49,8 +55,11 @@ class Role {
                 WHERE r.rol_id = ?
                 GROUP BY r.rol_id, r.rol_nombre
             `;
-            const [result] = await db.executeQuery(query, [rol_id]);
-            return result[0] || null;
+            const result = await db.executeQuery(query, [rol_id]);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return result.data[0] || null;
         } catch (error) {
             throw new Error(`Error al obtener rol: ${error.message}`);
         }
@@ -64,11 +73,14 @@ class Role {
                     rol_nombre = ?
                 WHERE rol_id = ?
             `;
-            const [result] = await db.executeQuery(query, [
+            const result = await db.executeQuery(query, [
                 rolData.rol_nombre,
                 rol_id
             ]);
-            return { success: result.affectedRows > 0 };
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return { success: result.data.affectedRows > 0 };
         } catch (error) {
             throw new Error(`Error al actualizar rol: ${error.message}`);
         }
@@ -79,15 +91,22 @@ class Role {
         try {
             // Verificar si hay usuarios asociados
             const checkQuery = `SELECT COUNT(*) as count FROM usuarios WHERE rol_id = ? AND usuario_estado = 1`;
-            const [checkResult] = await db.executeQuery(checkQuery, [rol_id]);
+            const checkResult = await db.executeQuery(checkQuery, [rol_id]);
             
-            if (checkResult[0].count > 0) {
+            if (!checkResult.success) {
+                throw new Error(checkResult.error);
+            }
+            
+            if (checkResult.data[0].count > 0) {
                 throw new Error('No se puede eliminar el rol porque tiene usuarios asociados');
             }
 
             const query = `DELETE FROM roles WHERE rol_id = ?`;
-            const [result] = await db.executeQuery(query, [rol_id]);
-            return { success: result.affectedRows > 0 };
+            const result = await db.executeQuery(query, [rol_id]);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return { success: result.data.affectedRows > 0 };
         } catch (error) {
             throw new Error(`Error al eliminar rol: ${error.message}`);
         }
@@ -105,8 +124,11 @@ class Role {
                 WHERE u.rol_id = ? AND u.usuario_estado = 1
                 ORDER BY u.usuario_apellido, u.usuario_nombre
             `;
-            const [result] = await db.executeQuery(query, [rol_id]);
-            return result;
+            const result = await db.executeQuery(query, [rol_id]);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return result.data || [];
         } catch (error) {
             throw new Error(`Error al obtener usuarios por rol: ${error.message}`);
         }
@@ -123,8 +145,11 @@ class Role {
                 params.push(rol_id);
             }
 
-            const [result] = await db.executeQuery(query, params);
-            return result.length > 0;
+            const result = await db.executeQuery(query, params);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return (result.data || []).length > 0;
         } catch (error) {
             throw new Error(`Error al verificar rol: ${error.message}`);
         }
@@ -144,8 +169,11 @@ class Role {
                 GROUP BY r.rol_id, r.rol_nombre
                 ORDER BY r.rol_id
             `;
-            const [result] = await db.executeQuery(query);
-            return result;
+            const result = await db.executeQuery(query);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return result.data || [];
         } catch (error) {
             throw new Error(`Error al obtener estadísticas de roles: ${error.message}`);
         }

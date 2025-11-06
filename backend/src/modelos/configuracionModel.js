@@ -115,7 +115,18 @@ class Configuracion {
     try {
       const horarioInicio = await this.getValue("horario_atencion_inicio", "08:00");
       const horarioFin = await this.getValue("horario_atencion_fin", "17:00");
-      const diasLaborales = await this.getValue("dias_laborales", ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"]);
+      
+      // Obtener días laborales (puede ser JSON o array)
+      let diasLaborales = await this.getValue("dias_laborales", ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"]);
+      if (typeof diasLaborales === 'string') {
+        try {
+          diasLaborales = JSON.parse(diasLaborales);
+        } catch {
+          // Si no es JSON válido, usar el valor por defecto
+          diasLaborales = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+        }
+      }
+      
       const zonaHoraria = await this.getValue("zona_horaria", "America/Bogota");
       const recordatorio24h = await this.getValue("recordatorio_24h_antes", true);
       const recordatorio1h = await this.getValue("recordatorio_1h_antes", true);
@@ -123,13 +134,22 @@ class Configuracion {
       return {
         horario_inicio: horarioInicio,
         horario_fin: horarioFin,
-        dias_laborales: diasLaborales,
+        dias_laborales: Array.isArray(diasLaborales) ? diasLaborales : ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"],
         zona_horaria: zonaHoraria,
         recordatorio_24h_antes: recordatorio24h,
         recordatorio_1h_antes: recordatorio1h,
       };
     } catch (error) {
-      throw new Error(`Error al obtener horarios: ${error.message}`);
+      console.error("Error en getHorarios:", error);
+      // Retornar valores por defecto si hay error
+      return {
+        horario_inicio: "08:00",
+        horario_fin: "17:00",
+        dias_laborales: ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"],
+        zona_horaria: "America/Bogota",
+        recordatorio_24h_antes: true,
+        recordatorio_1h_antes: true,
+      };
     }
   }
 
@@ -162,4 +182,5 @@ class Configuracion {
 }
 
 export default Configuracion;
+
 

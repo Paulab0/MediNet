@@ -30,6 +30,9 @@ appointmentRouter.put("/:id/status", appointmentController.updateStatus);
 // Obtener citas por fecha
 appointmentRouter.get("/fecha/:fecha", appointmentController.getByDate);
 
+// Obtener citas por paciente
+appointmentRouter.get("/paciente/:paciente_id", appointmentController.getByPaciente);
+
 // Eliminar cita (soft delete)
 appointmentRouter.delete("/:id", appointmentController.delete);
 

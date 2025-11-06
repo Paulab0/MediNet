@@ -1,11 +1,15 @@
 import { Router } from "express";
 import doctorController from "../controladores/medicoController.js";
 import verifyToken from "../intermediarios/verifyToken.js";
+import authorizeRoles from "../intermediarios/authorizeRoles.js";
 
 const doctorRouter = Router();
 
 // Crear médico
 doctorRouter.post("/", doctorController.create);
+
+// Registrar médico completo (requiere autenticación y rol de administrador)
+doctorRouter.post("/register", verifyToken, authorizeRoles([1]), doctorController.registerDoctor);
 
 // Obtener todos los médicos
 doctorRouter.get("/", doctorController.getAll);
@@ -49,8 +53,8 @@ doctorRouter.get("/:medico_id/general-stats", doctorController.getGeneralStats);
 // Actualizar perfil del médico
 doctorRouter.put("/:medico_id/profile", doctorController.updateProfile);
 
-// Actualizar información médica (especialidad, consultorio) - requiere autenticación
-doctorRouter.put("/:id/medical-info", verifyToken, doctorController.updateMedicalInfo);
+// Actualizar información médica (especialidad, consultorio) - requiere autenticación y rol de administrador
+doctorRouter.put("/:id/medical-info", verifyToken, authorizeRoles([1]), doctorController.updateMedicalInfo);
 
 // Buscar médicos con filtros
 doctorRouter.get("/search", doctorController.search);

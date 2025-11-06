@@ -57,6 +57,28 @@ const doctorService = {
       throw error;
     }
   },
+
+  // Registrar médico completo (para administrador)
+  registerDoctor: async (doctorData) => {
+    try {
+      const response = await api.post("/medicos/register", doctorData);
+      return response.data;
+    } catch (error) {
+      console.error("Error registrando médico:", error);
+      throw error.response?.data || { error: "Error al registrar el médico" };
+    }
+  },
+
+  // Eliminar médico
+  deleteDoctor: async (medico_id) => {
+    try {
+      const response = await api.delete(`/medicos/${medico_id}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error eliminando médico:", error);
+      throw error.response?.data || { error: "Error al eliminar el médico" };
+    }
+  },
 };
 
 export default doctorService;

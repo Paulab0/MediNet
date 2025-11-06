@@ -252,7 +252,57 @@ class Auth {
     const user = result.data[0];
     if (!user) return null;
     const { usuario_contrasena: _, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+
+    // Obtener medico_id si es médico
+    let medico_id = null;
+    let especialidad_nombre = null;
+    if (user.rol_id === 2) {
+      const medicoQuery = `
+        SELECT m.medico_id, e.especialidad_nombre 
+        FROM medicos m 
+        LEFT JOIN especialidades e ON m.especialidad_id = e.especialidad_id 
+        WHERE m.usuario_id = ? AND m.medico_estado = 1
+      `;
+      const medicoResult = await db.executeQuery(medicoQuery, [usuario_id]);
+      if (medicoResult.success && medicoResult.data.length > 0) {
+        medico_id = medicoResult.data[0].medico_id;
+        especialidad_nombre = medicoResult.data[0].especialidad_nombre;
+      }
+    }
+
+    // Obtener paciente_id si es paciente
+    let paciente_id = null;
+    if (user.rol_id === 3) {
+      const pacienteQuery = `SELECT paciente_id FROM pacientes WHERE usuario_id = ? AND paciente_estado = 1`;
+      const pacienteResult = await db.executeQuery(pacienteQuery, [usuario_id]);
+      if (pacienteResult.success && pacienteResult.data.length > 0) {
+        paciente_id = pacienteResult.data[0].paciente_id;
+      }
+    }
+
+    return {
+      ...userWithoutPassword,
+      medico_id,
+      paciente_id,
+      especialidad_nombre,
+    };
+  }
+
+  // Generar token JWT para un usuario
+  static generateToken(user) {
+    try {
+      // Obtener información adicional si es necesario
+      const tokenPayload = {
+        usuario_id: user.usuario_id,
+        usuario_correo: user.usuario_correo,
+        rol_id: user.rol_id,
+      };
+
+      const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+      return token;
+    } catch (error) {
+      throw new Error(`Error al generar token: ${error.message}`);
+    }
   }
 }
 

@@ -289,7 +289,7 @@ class Reminder {
     }
 
     // Crear recordatorio automático para cita
-    static async createForAppointment(medico_id, cita_fecha, cita_hora, minutes_before = 30) {
+    static async createForAppointment(medico_id, cita_id, cita_fecha, cita_hora, minutes_before = 30) {
         try {
             // Calcular fecha y hora del recordatorio
             const citaDateTime = new Date(`${cita_fecha}T${cita_hora}`);
@@ -298,14 +298,24 @@ class Reminder {
             const recordatorio_fecha = recordatorioDateTime.toISOString().split('T')[0];
             const recordatorio_hora = recordatorioDateTime.toTimeString().split(' ')[0];
 
+            // Determinar tipo de recordatorio
+            let recordatorio_tipo = 'Personalizado';
+            if (minutes_before === 1440) {
+                recordatorio_tipo = '24h_antes';
+            } else if (minutes_before === 60) {
+                recordatorio_tipo = '1h_antes';
+            }
+
             const query = `
-                INSERT INTO recordatorios (medico_id, recordatorio_fecha, recordatorio_hora, recordatorio_estado) 
-                VALUES (?, ?, ?, 1)
+                INSERT INTO recordatorios (medico_id, cita_id, recordatorio_fecha, recordatorio_hora, recordatorio_estado, recordatorio_enviado, recordatorio_tipo) 
+                VALUES (?, ?, ?, ?, 1, FALSE, ?)
             `;
             const result = await db.executeQuery(query, [
                 medico_id,
+                cita_id,
                 recordatorio_fecha,
-                recordatorio_hora
+                recordatorio_hora,
+                recordatorio_tipo
             ]);
             if (!result.success) {
                 throw new Error(result.error);
@@ -313,6 +323,60 @@ class Reminder {
             return { success: true, insertId: result.data.insertId };
         } catch (error) {
             throw new Error(`Error al crear recordatorio automático: ${error.message}`);
+        }
+    }
+
+    // Obtener recordatorios pendientes de envío
+    static async getPendingReminders() {
+        try {
+            const query = `
+                SELECT 
+                    r.recordatorio_id, r.cita_id, r.medico_id, 
+                    r.recordatorio_fecha, r.recordatorio_hora, r.recordatorio_tipo,
+                    c.cita_fecha, c.cita_hora, c.cita_tipo, c.cita_observaciones,
+                    c.paciente_id,
+                    um.usuario_nombre as medico_nombre, um.usuario_apellido as medico_apellido,
+                    up.usuario_nombre as paciente_nombre, up.usuario_apellido as paciente_apellido,
+                    up.usuario_correo as paciente_email, up.usuario_telefono as paciente_telefono,
+                    e.especialidad_nombre,
+                    m.medico_consultorio
+                FROM recordatorios r
+                INNER JOIN citas c ON r.cita_id = c.cita_id
+                INNER JOIN medicos m ON r.medico_id = m.medico_id
+                INNER JOIN usuarios um ON m.usuario_id = um.usuario_id
+                INNER JOIN pacientes p ON c.paciente_id = p.paciente_id
+                INNER JOIN usuarios up ON p.usuario_id = up.usuario_id
+                LEFT JOIN especialidades e ON m.especialidad_id = e.especialidad_id
+                WHERE r.recordatorio_estado = 1 
+                AND r.recordatorio_enviado = FALSE
+                AND c.cita_estado NOT IN ('Cancelada', 'Completada', 'No asistió')
+                AND (
+                    (r.recordatorio_fecha < CURDATE()) 
+                    OR (r.recordatorio_fecha = CURDATE() AND r.recordatorio_hora <= CURTIME())
+                )
+                ORDER BY r.recordatorio_fecha ASC, r.recordatorio_hora ASC
+            `;
+            const result = await db.executeQuery(query);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return result.data || [];
+        } catch (error) {
+            throw new Error(`Error al obtener recordatorios pendientes: ${error.message}`);
+        }
+    }
+
+    // Marcar recordatorio como enviado
+    static async markAsSent(recordatorio_id) {
+        try {
+            const query = `UPDATE recordatorios SET recordatorio_enviado = TRUE WHERE recordatorio_id = ?`;
+            const result = await db.executeQuery(query, [recordatorio_id]);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return { success: result.data.affectedRows > 0 };
+        } catch (error) {
+            throw new Error(`Error al marcar recordatorio como enviado: ${error.message}`);
         }
     }
 

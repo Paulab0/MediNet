@@ -1,12 +1,54 @@
 import db from "../../database/connectiondb.js";
 import Reminder from "./recordatorioModel.js";
+import Availability from "./disponibilidadModel.js";
 
 class Appointment {
   // Crear cita
   static async create(citaData) {
     try {
-      // Por ahora, no verificamos disponibilidad para simplificar el proceso
-      // TODO: Implementar verificación de disponibilidad más adelante
+      // Verificar disponibilidad antes de crear la cita
+      let disponibilidadCheck = await Availability.checkSpecificAvailability(
+        citaData.medico_id,
+        citaData.cita_fecha,
+        citaData.cita_hora
+      );
+
+      // Si la disponibilidad no existe, crearla automáticamente
+      if (!disponibilidadCheck.exists) {
+        console.log(`⚠️ Disponibilidad no existe, creándola automáticamente...`);
+        try {
+          // Asegurar que la hora esté en formato HH:MM:SS
+          let horaFormateada = citaData.cita_hora;
+          if (horaFormateada && horaFormateada.length === 5) {
+            horaFormateada = horaFormateada + ":00";
+          }
+          
+          const nuevaDisponibilidad = await Availability.create({
+            medico_id: citaData.medico_id,
+            disponibilidad_fecha: citaData.cita_fecha,
+            disponibilidad_hora: horaFormateada,
+            disponibilidad_estado: 1, // Disponible
+          });
+          
+          if (nuevaDisponibilidad.success) {
+            // Re-verificar la disponibilidad recién creada
+            disponibilidadCheck = await Availability.checkSpecificAvailability(
+              citaData.medico_id,
+              citaData.cita_fecha,
+              horaFormateada
+            );
+            console.log(`✅ Disponibilidad creada automáticamente: ${nuevaDisponibilidad.insertId}`);
+          }
+        } catch (createError) {
+          console.warn(`⚠️ No se pudo crear la disponibilidad automáticamente: ${createError.message}`);
+          // Continuar con la creación de la cita aunque no se pueda crear la disponibilidad
+        }
+      }
+
+      // Si la disponibilidad existe pero está ocupada, lanzar error
+      if (disponibilidadCheck.exists && !disponibilidadCheck.available) {
+        throw new Error("El horario seleccionado ya está ocupado");
+      }
 
       const query = `
                 INSERT INTO citas (medico_id, paciente_id, cita_fecha, cita_hora, cita_tipo, cita_observaciones, cita_estado) 
@@ -19,21 +61,30 @@ class Appointment {
         citaData.cita_hora,
         citaData.cita_tipo || null,
         citaData.cita_observaciones || null,
-        citaData.cita_estado || 1,
+        citaData.cita_estado || "Programada",
       ]);
       if (!result.success) {
         throw new Error(result.error);
       }
 
+      // Marcar disponibilidad como ocupada si existe
+      if (disponibilidadCheck.exists && disponibilidadCheck.disponibilidad_id) {
+        try {
+          await Availability.updateStatus(disponibilidadCheck.disponibilidad_id, 0);
+          console.log(`✅ Disponibilidad ${disponibilidadCheck.disponibilidad_id} marcada como ocupada`);
+        } catch (availabilityError) {
+          console.warn(`⚠️ No se pudo actualizar la disponibilidad: ${availabilityError.message}`);
+          // No fallar la creación de la cita si falla la actualización de disponibilidad
+        }
+      }
+
       // Crear recordatorios automáticos para la cita
       // Recordatorio 1 día antes (1440 minutos)
       // Recordatorio 1 hora antes (60 minutos)
-      // Recordatorio 30 minutos antes
       try {
         await Promise.all([
-          Reminder.createForAppointment(citaData.medico_id, citaData.cita_fecha, citaData.cita_hora, 1440), // 1 día antes
-          Reminder.createForAppointment(citaData.medico_id, citaData.cita_fecha, citaData.cita_hora, 60),  // 1 hora antes
-          Reminder.createForAppointment(citaData.medico_id, citaData.cita_fecha, citaData.cita_hora, 30),  // 30 minutos antes
+          Reminder.createForAppointment(citaData.medico_id, result.data.insertId, citaData.cita_fecha, citaData.cita_hora, 1440), // 1 día antes
+          Reminder.createForAppointment(citaData.medico_id, result.data.insertId, citaData.cita_fecha, citaData.cita_hora, 60),  // 1 hora antes
         ]);
         console.log(`✅ Recordatorios creados para la cita ${result.data.insertId}`);
       } catch (reminderError) {
@@ -94,8 +145,10 @@ class Appointment {
       const query = `
                 SELECT 
                     c.cita_id, c.medico_id, c.paciente_id, c.cita_fecha, c.cita_hora, c.cita_estado,
+                    c.cita_tipo, c.cita_observaciones,
                     um.usuario_nombre as medico_nombre, um.usuario_apellido as medico_apellido,
                     e.especialidad_nombre,
+                    m.medico_consultorio,
                     up.usuario_nombre as paciente_nombre, up.usuario_apellido as paciente_apellido,
                     up.usuario_telefono, up.usuario_correo, up.usuario_identificacion
                 FROM citas c
@@ -127,52 +180,100 @@ class Appointment {
 
       // Si se cambia la fecha/hora, verificar disponibilidad
       if (
-        citaData.cita_fecha !== citaActual.cita_fecha ||
-        citaData.cita_hora !== citaActual.cita_hora
+        (citaData.cita_fecha && citaData.cita_fecha !== citaActual.cita_fecha) ||
+        (citaData.cita_hora && citaData.cita_hora !== citaActual.cita_hora)
       ) {
-        const disponibilidad = await this.checkAvailability(
+        const nuevaFecha = citaData.cita_fecha || citaActual.cita_fecha;
+        const nuevaHora = citaData.cita_hora || citaActual.cita_hora;
+
+        // Normalizar formato de hora
+        let horaNormalizada = nuevaHora;
+        if (nuevaHora && nuevaHora.length === 5) {
+          horaNormalizada = nuevaHora + ":00";
+        }
+
+        // Verificar disponibilidad usando el modelo de Availability
+        const disponibilidadCheck = await Availability.checkSpecificAvailability(
           citaActual.medico_id,
-          citaData.cita_fecha,
-          citaData.cita_hora
+          nuevaFecha,
+          horaNormalizada
         );
-        if (!disponibilidad) {
-          throw new Error(
-            "El médico no está disponible en esa nueva fecha y hora"
-          );
+
+        if (!disponibilidadCheck.exists) {
+          throw new Error("El horario seleccionado no está disponible");
+        }
+
+        if (!disponibilidadCheck.available) {
+          throw new Error("El horario seleccionado ya está ocupado");
         }
 
         // Liberar el horario anterior
-        await this.updateAvailability(
+        const horaAnteriorNormalizada = citaActual.cita_hora.length === 5 
+          ? citaActual.cita_hora + ":00" 
+          : citaActual.cita_hora;
+        
+        const disponibilidadAnterior = await Availability.checkSpecificAvailability(
           citaActual.medico_id,
           citaActual.cita_fecha,
-          citaActual.cita_hora,
-          1
+          horaAnteriorNormalizada
         );
+
+        if (disponibilidadAnterior.exists) {
+          await Availability.updateStatus(disponibilidadAnterior.disponibilidad_id, 1);
+        }
 
         // Ocupar el nuevo horario
-        await this.updateAvailability(
-          citaActual.medico_id,
-          citaData.cita_fecha,
-          citaData.cita_hora,
-          0
-        );
+        await Availability.updateStatus(disponibilidadCheck.disponibilidad_id, 0);
       }
 
-      const query = `
-                UPDATE citas SET 
-                    cita_fecha = ?, cita_hora = ?, cita_estado = ?
-                WHERE cita_id = ?
-            `;
-      const result = await db.executeQuery(query, [
-        citaData.cita_fecha,
-        citaData.cita_hora,
-        citaData.cita_estado,
-        cita_id,
-      ]);
+      // Construir query dinámicamente
+      const fields = [];
+      const values = [];
+
+      if (citaData.cita_fecha !== undefined) {
+        fields.push("cita_fecha = ?");
+        values.push(citaData.cita_fecha);
+      }
+      if (citaData.cita_hora !== undefined) {
+        // Normalizar formato de hora
+        let horaNormalizada = citaData.cita_hora;
+        if (citaData.cita_hora && citaData.cita_hora.length === 5) {
+          horaNormalizada = citaData.cita_hora + ":00";
+        }
+        fields.push("cita_hora = ?");
+        values.push(horaNormalizada);
+      }
+      if (citaData.cita_estado !== undefined) {
+        fields.push("cita_estado = ?");
+        values.push(citaData.cita_estado);
+      }
+      if (citaData.cita_tipo !== undefined) {
+        fields.push("cita_tipo = ?");
+        values.push(citaData.cita_tipo);
+      }
+      if (citaData.cita_observaciones !== undefined) {
+        fields.push("cita_observaciones = ?");
+        values.push(citaData.cita_observaciones);
+      }
+
+      if (fields.length === 0) {
+        throw new Error("No hay campos para actualizar");
+      }
+
+      values.push(cita_id);
+      const query = `UPDATE citas SET ${fields.join(", ")} WHERE cita_id = ?`;
+      
+      const result = await db.executeQuery(query, values);
       if (!result.success) {
         throw new Error(result.error);
       }
-      return { success: result.data.affectedRows > 0 };
+
+      // Obtener la cita actualizada
+      const citaActualizada = await this.getById(cita_id);
+      return { 
+        success: result.data.affectedRows > 0,
+        cita: citaActualizada
+      };
     } catch (error) {
       throw new Error(`Error al actualizar cita: ${error.message}`);
     }
@@ -196,20 +297,31 @@ class Appointment {
     }
   }
 
-  // Eliminar cita (soft delete)
+  // Eliminar cita (soft delete - cancelar)
   static async delete(cita_id) {
     try {
       // Obtener datos de la cita para liberar disponibilidad
       const cita = await this.getById(cita_id);
-      if (cita) {
-        await this.updateAvailability(
-          cita.medico_id,
-          cita.cita_fecha,
-          cita.cita_hora,
-          1
-        );
+      if (!cita) {
+        throw new Error("Cita no encontrada");
       }
 
+      // Liberar disponibilidad
+      const horaNormalizada = cita.cita_hora.length === 5 
+        ? cita.cita_hora + ":00" 
+        : cita.cita_hora;
+      
+      const disponibilidadCheck = await Availability.checkSpecificAvailability(
+        cita.medico_id,
+        cita.cita_fecha,
+        horaNormalizada
+      );
+
+      if (disponibilidadCheck.exists) {
+        await Availability.updateStatus(disponibilidadCheck.disponibilidad_id, 1);
+      }
+
+      // Cambiar estado a Cancelada
       const query = `UPDATE citas SET cita_estado = 'Cancelada' WHERE cita_id = ?`;
       const result = await db.executeQuery(query, [cita_id]);
       if (!result.success) {
@@ -217,7 +329,7 @@ class Appointment {
       }
       return { success: result.data.affectedRows > 0 };
     } catch (error) {
-      throw new Error(`Error al eliminar cita: ${error.message}`);
+      throw new Error(`Error al cancelar cita: ${error.message}`);
     }
   }
 
@@ -352,6 +464,39 @@ class Appointment {
       return result.data;
     } catch (error) {
       throw new Error(`Error al obtener próximas citas: ${error.message}`);
+    }
+  }
+
+  // Obtener citas por paciente
+  static async getByPaciente(paciente_id) {
+    try {
+      const query = `
+                SELECT 
+                    c.cita_id, c.cita_fecha, c.cita_hora, c.cita_estado, c.cita_tipo, c.cita_observaciones,
+                    m.medico_id,
+                    um.usuario_nombre as medico_nombre, um.usuario_apellido as medico_apellido,
+                    um.usuario_foto_perfil as medico_foto_perfil,
+                    e.especialidad_nombre,
+                    m.medico_consultorio,
+                    CASE 
+                        WHEN c.cita_estado IN ('Completada', 'Cancelada', 'No asistió') THEN c.cita_estado
+                        WHEN c.cita_fecha < CURDATE() OR (c.cita_fecha = CURDATE() AND c.cita_hora < CURTIME()) THEN 'Completada'
+                        ELSE c.cita_estado
+                    END as estado_calculado
+                FROM citas c
+                INNER JOIN medicos m ON c.medico_id = m.medico_id
+                INNER JOIN usuarios um ON m.usuario_id = um.usuario_id
+                LEFT JOIN especialidades e ON m.especialidad_id = e.especialidad_id
+                WHERE c.paciente_id = ?
+                ORDER BY c.cita_fecha DESC, c.cita_hora DESC
+            `;
+      const result = await db.executeQuery(query, [paciente_id]);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      return result.data;
+    } catch (error) {
+      throw new Error(`Error al obtener citas del paciente: ${error.message}`);
     }
   }
 

@@ -16,6 +16,9 @@ import notificacionRouter from "./rutas/rutaNotificacion.js";
 import logActividadRouter from "./rutas/rutaLogActividad.js";
 import exportRouter from "./rutas/rutaExport.js";
 import configuracionRouter from "./rutas/rutaConfiguracion.js";
+import estadisticasRouter from "./rutas/rutaEstadisticas.js";
+import loginVerificationRouter from "./rutas/rutaLoginVerification.js";
+import reminderJob from "./jobs/reminderJob.js";
 
 // Configurar rutas
 app.use("/api/citas", appointmentRouter);
@@ -34,10 +37,16 @@ app.use("/api/notificaciones", notificacionRouter);
 app.use("/api/logs", logActividadRouter);
 app.use("/api/export", exportRouter);
 app.use("/api/configuracion", configuracionRouter);
+app.use("/api/estadisticas", estadisticasRouter);
+app.use("/api/login-verification", loginVerificationRouter);
 
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, async () => {
   await testConnection();
   console.log(`Servidor corriendo en el puerto: ${PORT}`);
+  
+  // Iniciar job de recordatorios automáticos (cada 5 minutos)
+  reminderJob.start(5);
+  console.log("✅ Job de recordatorios automáticos iniciado");
 });

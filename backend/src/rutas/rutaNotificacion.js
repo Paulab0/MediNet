@@ -24,3 +24,4 @@ notificacionRouter.delete("/:id", notificacionController.delete);
 
 export default notificacionRouter;
 
+

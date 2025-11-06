@@ -11,6 +11,7 @@ import {
 import { useAuth } from "../../../contextos/AuthContext";
 import specialtyService from "../../../servicios/servicioEspecialidad";
 import doctorService from "../../../servicios/servicioMedico";
+import userService from "../../../servicios/servicioUsuario";
 
 const EditProfileForm = ({ isOpen, onClose }) => {
   const { user, updateUser } = useAuth();
@@ -92,34 +93,38 @@ const EditProfileForm = ({ isOpen, onClose }) => {
       console.log("Actualizando perfil con datos:", formData);
       console.log("Médico ID:", user.medico_id);
 
-      // Validar que tenemos el medico_id
-      if (!user?.medico_id) {
-        throw new Error("No se encontró el ID del médico");
-      }
-
       // Preparar datos para enviar al backend
       const updateData = {
         usuario_nombre: formData.usuario_nombre,
         usuario_apellido: formData.usuario_apellido,
         usuario_correo: formData.usuario_correo,
         usuario_telefono: formData.usuario_telefono,
-        especialidad_id: formData.especialidad_id,
       };
 
-      // Llamar al API para actualizar el perfil
-      const result = await doctorService.updateProfile(
-        user.medico_id,
-        updateData
-      );
-      console.log("Resultado de la actualización:", result);
+      let result;
+      let especialidad_nombre = "";
 
-      // Obtener el nombre de la especialidad seleccionada
-      const selectedSpecialty = specialties.find(
-        (s) => s.especialidad_id == formData.especialidad_id
-      );
-      const especialidad_nombre = selectedSpecialty
-        ? selectedSpecialty.especialidad_nombre
-        : "";
+      // Si el usuario es médico y tiene medico_id, usar el servicio de médico
+      if (user?.medico_id && user.rol_id === 2) {
+        updateData.especialidad_id = formData.especialidad_id;
+        result = await doctorService.updateProfile(
+          user.medico_id,
+          updateData
+        );
+        
+        // Obtener el nombre de la especialidad seleccionada
+        const selectedSpecialty = specialties.find(
+          (s) => s.especialidad_id == formData.especialidad_id
+        );
+        especialidad_nombre = selectedSpecialty
+          ? selectedSpecialty.especialidad_nombre
+          : "";
+      } else {
+        // Si no es médico o no tiene medico_id, usar el servicio de usuario normal
+        result = await userService.updateProfile(user.usuario_id, updateData);
+      }
+
+      console.log("Resultado de la actualización:", result);
 
       // Actualizar el contexto de usuario con los datos actualizados
       updateUser({
@@ -128,8 +133,10 @@ const EditProfileForm = ({ isOpen, onClose }) => {
         usuario_apellido: formData.usuario_apellido,
         usuario_correo: formData.usuario_correo,
         usuario_telefono: formData.usuario_telefono,
-        especialidad_id: formData.especialidad_id,
-        especialidad_nombre,
+        ...(especialidad_nombre && {
+          especialidad_id: formData.especialidad_id,
+          especialidad_nombre,
+        }),
       });
 
       // Cambiar a modo de solo lectura
@@ -289,38 +296,38 @@ const EditProfileForm = ({ isOpen, onClose }) => {
             </div>
           </div>
 
- {/* Información Profesional */}
-<div className="space-y-4">
-  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-    <AcademicCapIcon className="w-5 h-5 mr-2 text-blue-600" />
-    Información Profesional
-  </h3>
+          {/* Información Profesional */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <AcademicCapIcon className="w-5 h-5 mr-2 text-blue-600" />
+              Información Profesional
+            </h3>
 
-  <div>
-    <label className="block text-sm font-medium text-gray-700 mb-2">
-      Especialidad *
-    </label>
-    <select
-      name="especialidad_id"
-      value={formData.especialidad_id}
-      onChange={handleInputChange}
-      required={isEditing}
-      disabled={!isEditing}
-      className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-        isEditing
-          ? "border-gray-300 bg-white"
-          : "border-gray-200 bg-gray-50 text-gray-700"
-      }`}
-    >
-      <option value="">Selecciona una especialidad</option>
-      {specialties.map((specialty) => (
-        <option key={specialty.especialidad_id} value={specialty.especialidad_id}>
-          {specialty.especialidad_nombre}
-        </option>
-      ))}
-    </select>
-  </div>
-</div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Especialidad *
+              </label>
+              <select
+                name="especialidad_id"
+                value={formData.especialidad_id}
+                onChange={handleInputChange}
+                required={isEditing && user?.rol_id === 2 && user?.medico_id}
+                disabled={!isEditing || !(user?.rol_id === 2 && user?.medico_id)}
+                className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  isEditing && user?.rol_id === 2 && user?.medico_id
+                    ? "border-gray-300 bg-white"
+                    : "border-gray-200 bg-gray-50 text-gray-700"
+                }`}
+              >
+                <option value="">Selecciona una especialidad</option>
+                {specialties.map((specialty) => (
+                  <option key={specialty.especialidad_id} value={specialty.especialidad_id}>
+                    {specialty.especialidad_nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
 
 
 

@@ -42,6 +42,9 @@ patientRouter.get(
 // Buscar pacientes por nombre o identificación
 patientRouter.get("/search", patientController.search);
 
+// Obtener pacientes con cantidad de atenciones
+patientRouter.get("/reporte/atenciones", patientController.getPatientsWithAttendances);
+
 // Obtener estadísticas del paciente
 patientRouter.get("/:paciente_id/stats", patientController.getStats);
 

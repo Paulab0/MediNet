@@ -255,11 +255,61 @@ const appointmentService = {
       if (fecha_hasta) params.append('fecha_hasta', fecha_hasta);
       params.append('formato', formato);
 
-      const url = `/export/citas?${params.toString()}`;
-      window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${url}`, '_blank');
+      // Obtener token del localStorage
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No hay token de autenticación');
+      }
+
+      // Construir URL completa con token
+      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      const url = `${baseUrl}/api/export/citas?${params.toString()}`;
+      
+      // Crear un enlace temporal para descargar el archivo
+      const link = document.createElement('a');
+      link.href = url;
+      link.target = '_blank';
+      
+      // Agregar token como header usando fetch y blob
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error al exportar: ${response.statusText}`);
+      }
+
+      // Obtener el blob y crear URL
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      
+      // Crear enlace de descarga
+      const downloadLink = document.createElement('a');
+      downloadLink.href = blobUrl;
+      downloadLink.download = `reporte_citas_${Date.now()}.${formato === 'csv' ? 'csv' : 'html'}`;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      
+      // Limpiar URL del blob
+      window.URL.revokeObjectURL(blobUrl);
     } catch (error) {
       console.error("Error exportando reporte:", error);
+      alert("Error al exportar el reporte. Por favor, intenta nuevamente.");
       throw error.response?.data || { error: "Error al exportar el reporte" };
+    }
+  },
+
+  // Obtener citas por paciente
+  getByPaciente: async (paciente_id) => {
+    try {
+      const response = await api.get(`/citas/paciente/${paciente_id}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { error: "Error al obtener las citas del paciente" };
     }
   },
 };

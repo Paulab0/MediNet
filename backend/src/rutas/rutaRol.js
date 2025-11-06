@@ -9,6 +9,12 @@ roleRouter.post("/", roleController.create);
 // Obtener todos los roles
 roleRouter.get("/", roleController.getAll);
 
+// Verificar si un rol existe por nombre (debe ir ANTES de /:id)
+roleRouter.get("/exists", roleController.existsByName);
+
+// Obtener estadísticas por rol (debe ir ANTES de /:id)
+roleRouter.get("/stats", roleController.getStats);
+
 // Obtener rol por ID
 roleRouter.get("/:id", roleController.getById);
 
@@ -20,11 +26,5 @@ roleRouter.delete("/:id", roleController.delete);
 
 // Obtener usuarios por rol
 roleRouter.get("/:id/usuarios", roleController.getUsersByRol);
-
-// Verificar si un rol existe por nombre
-roleRouter.get("/exists", roleController.existsByName);
-
-// Obtener estadísticas por rol
-roleRouter.get("/stats", roleController.getStats);
 
 export default roleRouter;

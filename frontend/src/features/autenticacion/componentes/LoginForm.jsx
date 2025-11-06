@@ -21,6 +21,14 @@ const Login = () => {
       const data = await login(email, password);
       console.log("✅ Login exitoso:", data);
 
+      // Si requiere verificación, mostrar mensaje
+      if (data.requiresVerification) {
+        setError(null);
+        // Mostrar mensaje de éxito con información de verificación
+        alert(data.message || "Se ha enviado un correo de confirmación. Por favor, verifica tu correo para completar el inicio de sesión.");
+        return;
+      }
+
       // Redirigir según el rol del usuario (usando replace para evitar historial)
       if (data.user) {
         switch (data.user.rol_id) {

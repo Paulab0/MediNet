@@ -72,6 +72,27 @@ const patientService = {
       );
     }
   },
+
+  // Obtener pacientes con cantidad de atenciones
+  getPatientsWithAttendances: async (filters = {}) => {
+    try {
+      const params = new URLSearchParams();
+      if (filters.medico_id) params.append("medico_id", filters.medico_id);
+      if (filters.fecha_desde) params.append("fecha_desde", filters.fecha_desde);
+      if (filters.fecha_hasta) params.append("fecha_hasta", filters.fecha_hasta);
+      if (filters.ordenar_por) params.append("ordenar_por", filters.ordenar_por);
+
+      const response = await api.get(`/pacientes/reporte/atenciones?${params.toString()}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error obteniendo pacientes con atenciones:", error);
+      throw (
+        error.response?.data || {
+          error: "Error al obtener los pacientes con atenciones",
+        }
+      );
+    }
+  },
 };
 
 export default patientService;

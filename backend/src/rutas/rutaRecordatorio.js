@@ -1,5 +1,6 @@
 import { Router } from "express";
 import reminderController from "../controladores/recordatorioController.js";
+import reminderServiceController from "../controladores/reminderServiceController.js";
 
 const reminderRouter = Router();
 
@@ -44,5 +45,8 @@ reminderRouter.post("/for-appointment", reminderController.createForAppointment)
 
 // Obtener estadísticas de recordatorios
 reminderRouter.get("/stats", reminderController.getStats);
+
+// Procesar recordatorios pendientes (para ejecutar automáticamente)
+reminderRouter.post("/process", reminderServiceController.processReminders);
 
 export default reminderRouter;

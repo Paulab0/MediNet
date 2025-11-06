@@ -4,6 +4,7 @@ import Login from "../features/autenticacion/componentes/LoginForm";
 import RegisterPage from "../features/autenticacion/paginas/RegisterPage";
 import ForgotPasswordPage from "../features/autenticacion/componentes/ForgotPasswordPage";
 import ResetPasswordPage from "../features/autenticacion/componentes/ResetPasswordPage";
+import ConfirmLoginPage from "../features/autenticacion/componentes/ConfirmLoginPage";
 import DashboardPage from "../features/doctor/paginas/DashboardPage";
 import ProtectedRoute from "../componentes/ProtectedRoute";
 import RoleRedirect from "../componentes/RoleRedirect";
@@ -13,8 +14,13 @@ import UsersPage from "../features/administrador/paginas/UsersPage";
 import DoctorsPage from "../features/administrador/paginas/DoctorsPage";
 import PatientsPage from "../features/administrador/paginas/PatientsPage";
 import AppointmentsPage from "../features/administrador/paginas/AppointmentsPage";
+import AppointmentsReportPage from "../features/administrador/paginas/AppointmentsReportPage";
+import PatientsReportPage from "../features/administrador/paginas/PatientsReportPage";
+import StatisticsPage from "../features/administrador/paginas/StatisticsPage";
 import ProfilePage from "../features/usuario/paginas/ProfilePage";
 import SearchDoctorsPage from "../features/paciente/paginas/SearchDoctorsPage";
+import MyAppointmentsPage from "../features/paciente/paginas/MyAppointmentsPage";
+import MyMedicalHistoryPage from "../features/paciente/paginas/MyMedicalHistoryPage";
 import SettingsPage from "../features/administrador/paginas/SettingsPage";
 
 const AppRoutes = () => {
@@ -25,6 +31,7 @@ const AppRoutes = () => {
 
       {/* Rutas públicas */}
       <Route path="/iniciar-sesion" element={<Login />} />
+      <Route path="/confirmar-login" element={<ConfirmLoginPage />} />
       <Route path="/registro" element={<RegisterPage />} />
       <Route path="/recuperar-contrasena" element={<ForgotPasswordPage />} />
       <Route path="/recuperar-contrasena/reset" element={<ResetPasswordPage />} />
@@ -62,10 +69,13 @@ const AppRoutes = () => {
         <Route path="panel" element={<AdminDashboardPage />} />
         <Route path="usuarios" element={<UsersPage />} />
         <Route path="medicos" element={<DoctorsPage />} />
-              <Route path="pacientes" element={<PatientsPage />} />
-              <Route path="citas" element={<AppointmentsPage />} />
-              <Route path="perfil" element={<ProfilePage />} />
-              <Route path="configuracion" element={<SettingsPage />} />
+        <Route path="pacientes" element={<PatientsPage />} />
+        <Route path="citas" element={<AppointmentsPage />} />
+        <Route path="reportes/citas" element={<AppointmentsReportPage />} />
+        <Route path="reportes/pacientes" element={<PatientsReportPage />} />
+        <Route path="estadisticas" element={<StatisticsPage />} />
+        <Route path="perfil" element={<ProfilePage />} />
+        <Route path="configuracion" element={<SettingsPage />} />
       </Route>
 
       {/* Ruta de perfil para todos los usuarios autenticados */}
@@ -107,6 +117,22 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute requiredRole={3}>
             <SearchDoctorsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/paciente/mis-citas"
+        element={
+          <ProtectedRoute requiredRole={3}>
+            <MyAppointmentsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/paciente/mi-historial"
+        element={
+          <ProtectedRoute requiredRole={3}>
+            <MyMedicalHistoryPage />
           </ProtectedRoute>
         }
       />

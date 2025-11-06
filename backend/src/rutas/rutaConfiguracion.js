@@ -11,14 +11,14 @@ configuracionRouter.use(verifyToken);
 // Obtener todas las configuraciones
 configuracionRouter.get("/", configuracionController.getAll);
 
+// Obtener configuración de horarios (debe ir ANTES de /:clave para evitar conflictos)
+configuracionRouter.get("/horarios", configuracionController.getHorarios);
+
 // Obtener configuración por clave
 configuracionRouter.get("/:clave", configuracionController.getByKey);
 
 // Obtener valor de configuración
 configuracionRouter.get("/:clave/valor", configuracionController.getValue);
-
-// Obtener configuración de horarios (público para autenticados)
-configuracionRouter.get("/horarios", configuracionController.getHorarios);
 
 // Crear o actualizar configuración (solo admin)
 configuracionRouter.put("/", authorizeRoles([1]), configuracionController.set);
@@ -30,4 +30,5 @@ configuracionRouter.put("/horarios", authorizeRoles([1]), configuracionControlle
 configuracionRouter.delete("/:clave", authorizeRoles([1]), configuracionController.delete);
 
 export default configuracionRouter;
+
 

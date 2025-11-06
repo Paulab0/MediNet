@@ -311,6 +311,91 @@ class Patient {
       );
     }
   }
+
+  // Obtener pacientes con cantidad de atenciones (citas completadas)
+  static async getPatientsWithAttendances(filters = {}) {
+    try {
+      let query = `
+        SELECT 
+          p.paciente_id,
+          u.usuario_id,
+          u.usuario_nombre,
+          u.usuario_apellido,
+          u.usuario_correo,
+          u.usuario_telefono,
+          u.usuario_identificacion,
+          u.usuario_edad,
+          u.usuario_genero,
+          u.usuario_direccion,
+          u.usuario_ciudad,
+          u.usuario_foto_perfil,
+          COUNT(CASE 
+            WHEN c.cita_estado = 'Completada' THEN 1
+            WHEN c.cita_estado != 'Cancelada' AND c.cita_estado != 'No asistió' 
+              AND (c.cita_fecha < CURDATE() OR (c.cita_fecha = CURDATE() AND c.cita_hora < CURTIME())) THEN 1
+          END) as cantidad_atenciones,
+          MAX(c.cita_fecha) as ultima_atencion
+        FROM pacientes p
+        INNER JOIN usuarios u ON p.usuario_id = u.usuario_id
+        LEFT JOIN citas c ON p.paciente_id = c.paciente_id
+        WHERE p.paciente_estado = 1 AND u.usuario_estado = 1
+      `;
+      const params = [];
+
+      // Filtro por médico
+      if (filters.medico_id) {
+        query += ` AND EXISTS (
+          SELECT 1 FROM citas c2 
+          WHERE c2.paciente_id = p.paciente_id 
+          AND c2.medico_id = ?
+        )`;
+        params.push(filters.medico_id);
+      }
+
+      // Filtro por fecha desde
+      if (filters.fecha_desde) {
+        query += ` AND EXISTS (
+          SELECT 1 FROM citas c3 
+          WHERE c3.paciente_id = p.paciente_id 
+          AND c3.cita_fecha >= ?
+        )`;
+        params.push(filters.fecha_desde);
+      }
+
+      // Filtro por fecha hasta
+      if (filters.fecha_hasta) {
+        query += ` AND EXISTS (
+          SELECT 1 FROM citas c4 
+          WHERE c4.paciente_id = p.paciente_id 
+          AND c4.cita_fecha <= ?
+        )`;
+        params.push(filters.fecha_hasta);
+      }
+
+      query += `
+        GROUP BY p.paciente_id, u.usuario_id, u.usuario_nombre, u.usuario_apellido, 
+                 u.usuario_correo, u.usuario_telefono, u.usuario_identificacion, 
+                 u.usuario_edad, u.usuario_genero, u.usuario_direccion, u.usuario_ciudad, u.usuario_foto_perfil
+      `;
+
+      // Ordenar por cantidad de atenciones (descendente) o por nombre
+      if (filters.ordenar_por === 'atenciones') {
+        query += ` ORDER BY cantidad_atenciones DESC, u.usuario_apellido, u.usuario_nombre`;
+      } else {
+        query += ` ORDER BY u.usuario_apellido, u.usuario_nombre`;
+      }
+
+      const result = await db.executeQuery(query, params);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      return result.data;
+    } catch (error) {
+      throw new Error(
+        `Error al obtener pacientes con atenciones: ${error.message}`
+      );
+    }
+  }
 }
 
 export default Patient;

@@ -9,13 +9,16 @@ class Availability {
                 INSERT INTO disponibilidad (medico_id, disponibilidad_fecha, disponibilidad_hora, disponibilidad_estado) 
                 VALUES (?, ?, ?, ?)
             `;
-            const [result] = await db.executeQuery(query, [
+            const result = await db.executeQuery(query, [
                 disponibilidadData.medico_id,
                 disponibilidadData.disponibilidad_fecha,
                 disponibilidadData.disponibilidad_hora,
                 disponibilidadData.disponibilidad_estado || 1
             ]);
-            return { success: true, insertId: result.insertId };
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return { success: true, insertId: result.data.insertId };
         } catch (error) {
             throw new Error(`Error al crear disponibilidad: ${error.message}`);
         }
@@ -31,8 +34,11 @@ class Availability {
                 VALUES ${placeholders}
             `;
             const flatValues = values.flat();
-            const [result] = await db.executeQuery(query, flatValues);
-            return { success: true, insertedCount: result.affectedRows };
+            const result = await db.executeQuery(query, flatValues);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return { success: true, insertedCount: result.data.affectedRows };
         } catch (error) {
             throw new Error(`Error al crear múltiples disponibilidades: ${error.message}`);
         }
@@ -54,8 +60,11 @@ class Availability {
                 WHERE d.disponibilidad_estado = 1
                 ORDER BY d.disponibilidad_fecha DESC, d.disponibilidad_hora
             `;
-            const [result] = await db.executeQuery(query);
-            return result;
+            const result = await db.executeQuery(query);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return result.data;
         } catch (error) {
             throw new Error(`Error al obtener disponibilidades: ${error.message}`);
         }
@@ -76,8 +85,11 @@ class Availability {
                 LEFT JOIN especialidades e ON m.especialidad_id = e.especialidad_id
                 WHERE d.disponibilidad_id = ?
             `;
-            const [result] = await db.executeQuery(query, [disponibilidad_id]);
-            return result[0] || null;
+            const result = await db.executeQuery(query, [disponibilidad_id]);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return result.data[0] || null;
         } catch (error) {
             throw new Error(`Error al obtener disponibilidad: ${error.message}`);
         }
@@ -102,8 +114,11 @@ class Availability {
 
             query += ` ORDER BY d.disponibilidad_fecha, d.disponibilidad_hora`;
             
-            const [result] = await db.executeQuery(query, params);
-            return result;
+            const result = await db.executeQuery(query, params);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return result.data;
         } catch (error) {
             throw new Error(`Error al obtener disponibilidad por médico: ${error.message}`);
         }
@@ -131,8 +146,11 @@ class Availability {
 
             query += ` ORDER BY d.disponibilidad_fecha, d.disponibilidad_hora`;
             
-            const [result] = await db.executeQuery(query, params);
-            return result;
+            const result = await db.executeQuery(query, params);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return result.data;
         } catch (error) {
             throw new Error(`Error al obtener disponibilidad disponible: ${error.message}`);
         }
@@ -155,8 +173,11 @@ class Availability {
                 WHERE d.disponibilidad_fecha = ?
                 ORDER BY u.usuario_apellido, u.usuario_nombre, d.disponibilidad_hora
             `;
-            const [result] = await db.executeQuery(query, [fecha]);
-            return result;
+            const result = await db.executeQuery(query, [fecha]);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return result.data;
         } catch (error) {
             throw new Error(`Error al obtener disponibilidad por fecha: ${error.message}`);
         }
@@ -170,13 +191,16 @@ class Availability {
                     disponibilidad_fecha = ?, disponibilidad_hora = ?, disponibilidad_estado = ?
                 WHERE disponibilidad_id = ?
             `;
-            const [result] = await db.executeQuery(query, [
+            const result = await db.executeQuery(query, [
                 disponibilidadData.disponibilidad_fecha,
                 disponibilidadData.disponibilidad_hora,
                 disponibilidadData.disponibilidad_estado,
                 disponibilidad_id
             ]);
-            return { success: result.affectedRows > 0 };
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return { success: result.data.affectedRows > 0 };
         } catch (error) {
             throw new Error(`Error al actualizar disponibilidad: ${error.message}`);
         }
@@ -189,8 +213,11 @@ class Availability {
                 UPDATE disponibilidad SET disponibilidad_estado = ?
                 WHERE disponibilidad_id = ?
             `;
-            const [result] = await db.executeQuery(query, [estado, disponibilidad_id]);
-            return { success: result.affectedRows > 0 };
+            const result = await db.executeQuery(query, [estado, disponibilidad_id]);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return { success: result.data.affectedRows > 0 };
         } catch (error) {
             throw new Error(`Error al actualizar estado de disponibilidad: ${error.message}`);
         }
@@ -200,8 +227,11 @@ class Availability {
     static async delete(disponibilidad_id) {
         try {
             const query = `DELETE FROM disponibilidad WHERE disponibilidad_id = ?`;
-            const [result] = await db.executeQuery(query, [disponibilidad_id]);
-            return { success: result.affectedRows > 0 };
+            const result = await db.executeQuery(query, [disponibilidad_id]);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return { success: result.data.affectedRows > 0 };
         } catch (error) {
             throw new Error(`Error al eliminar disponibilidad: ${error.message}`);
         }
@@ -210,21 +240,31 @@ class Availability {
     // Verificar si un horario específico está disponible
     static async checkSpecificAvailability(medico_id, fecha, hora) {
         try {
+            // Normalizar formato de hora (HH:MM o HH:MM:SS)
+            let horaNormalizada = hora;
+            if (hora && hora.length === 5) {
+                // Si viene en formato HH:MM, agregar :00
+                horaNormalizada = hora + ":00";
+            }
+
             const query = `
                 SELECT disponibilidad_id, disponibilidad_estado 
                 FROM disponibilidad 
-                WHERE medico_id = ? AND disponibilidad_fecha = ? AND disponibilidad_hora = ?
+                WHERE medico_id = ? AND disponibilidad_fecha = ? AND TIME(disponibilidad_hora) = TIME(?)
             `;
-            const [result] = await db.executeQuery(query, [medico_id, fecha, hora]);
+            const result = await db.executeQuery(query, [medico_id, fecha, horaNormalizada]);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
             
-            if (result.length === 0) {
+            if (result.data.length === 0) {
                 return { exists: false, available: false };
             }
             
             return { 
                 exists: true, 
-                available: result[0].disponibilidad_estado === 1,
-                disponibilidad_id: result[0].disponibilidad_id
+                available: result.data[0].disponibilidad_estado === 1,
+                disponibilidad_id: result.data[0].disponibilidad_id
             };
         } catch (error) {
             throw new Error(`Error al verificar disponibilidad específica: ${error.message}`);
@@ -240,8 +280,11 @@ class Availability {
                 WHERE medico_id = ? AND disponibilidad_fecha = ? AND disponibilidad_estado = 0
                 ORDER BY disponibilidad_hora
             `;
-            const [result] = await db.executeQuery(query, [medico_id, fecha]);
-            return result.map(row => row.disponibilidad_hora);
+            const result = await db.executeQuery(query, [medico_id, fecha]);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return result.data.map(row => row.disponibilidad_hora);
         } catch (error) {
             throw new Error(`Error al obtener horarios ocupados: ${error.message}`);
         }
@@ -271,11 +314,14 @@ class Availability {
                 VALUES ${placeholders}
             `;
             const flatValues = values.flat();
-            const [result] = await db.executeQuery(query, flatValues);
+            const result = await db.executeQuery(query, flatValues);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
             
             return { 
                 success: true, 
-                insertedCount: result.affectedRows,
+                insertedCount: result.data.affectedRows,
                 totalSlots: values.length
             };
         } catch (error) {
@@ -305,11 +351,18 @@ class Availability {
                 queries.map(query => db.executeQuery(query, params))
             );
 
+            // Verificar que todas las consultas fueron exitosas
+            results.forEach((result, index) => {
+                if (!result.success) {
+                    throw new Error(`Error en consulta ${index + 1}: ${result.error}`);
+                }
+            });
+
             return {
-                total_slots: results[0][0][0].total_slots,
-                available_slots: results[1][0][0].available_slots,
-                occupied_slots: results[2][0][0].occupied_slots,
-                today_available: results[3][0][0].today_available
+                total_slots: results[0].data[0].total_slots,
+                available_slots: results[1].data[0].available_slots,
+                occupied_slots: results[2].data[0].occupied_slots,
+                today_available: results[3].data[0].today_available
             };
         } catch (error) {
             throw new Error(`Error al obtener estadísticas de disponibilidad: ${error.message}`);

@@ -45,6 +45,20 @@ const authService = {
     return userData ? JSON.parse(userData) : null;
   },
 
+  // Confirmar inicio de sesión
+  confirmLogin: async (token) => {
+    try {
+      const response = await api.post(`/auth/confirm-login`, { token });
+      return response.data;
+    } catch (error) {
+      const errorData = error.response?.data || { error: "Error de conexión" };
+      const errorWithResponse = new Error(errorData.error || "Error de conexión");
+      errorWithResponse.response = error.response;
+      errorWithResponse.error = errorData.error;
+      throw errorWithResponse;
+    }
+  },
+
   // Cerrar sesión
   logout: () => {
     localStorage.removeItem("token");

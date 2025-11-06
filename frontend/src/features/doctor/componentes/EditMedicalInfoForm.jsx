@@ -161,3 +161,4 @@ const EditMedicalInfoForm = ({ isOpen, onClose, onSuccess }) => {
 
 export default EditMedicalInfoForm;
 
+

@@ -9,6 +9,9 @@ authRouter.post("/register", authController.register);
 // Login de usuario
 authRouter.post("/login", authController.login);
 
+// Confirmar inicio de sesión
+authRouter.post("/confirm-login", authController.confirmLogin);
+
 // Cambiar contraseña
 authRouter.post("/change-password", authController.changePassword);
 

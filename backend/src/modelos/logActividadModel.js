@@ -112,3 +112,4 @@ class LogActividad {
 
 export default LogActividad;
 
+

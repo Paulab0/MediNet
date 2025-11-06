@@ -19,6 +19,13 @@ const appointmentController = {
           if (citaCompleta) {
             // Obtener datos del paciente y médico (el getById ya incluye esta info)
             if (citaCompleta.paciente_id && citaCompleta.usuario_correo) {
+              // Log para depuración
+              console.log('📧 Datos para email de confirmación:', {
+                consultorio: citaCompleta.medico_consultorio,
+                especialidad: citaCompleta.especialidad_nombre,
+                identificacion: citaCompleta.usuario_identificacion
+              });
+              
               // Enviar email de confirmación
               await emailService.sendAppointmentConfirmationEmail(
                 citaCompleta.usuario_correo,
@@ -27,6 +34,9 @@ const appointmentController = {
                   fecha: citaCompleta.cita_fecha,
                   hora: citaCompleta.cita_hora,
                   medico: `${citaCompleta.medico_nombre || ''} ${citaCompleta.medico_apellido || ''}`.trim() || 'Médico',
+                  especialidad: citaCompleta.especialidad_nombre,
+                  consultorio: citaCompleta.medico_consultorio || null,
+                  identificacion: citaCompleta.usuario_identificacion,
                   tipo: citaCompleta.cita_tipo,
                   observaciones: citaCompleta.cita_observaciones,
                 }
@@ -207,6 +217,17 @@ const appointmentController = {
         error
       );
       res.status(400).json({ error: error.message });
+    }
+  },
+
+  // Obtener citas por paciente
+  async getByPaciente(req, res) {
+    try {
+      const { paciente_id } = req.params;
+      const result = await Appointment.getByPaciente(paciente_id);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
     }
   },
 };

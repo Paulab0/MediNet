@@ -24,4 +24,7 @@ router.put("/registro/:historial_id", historialController.updateRecord);
 // Eliminar registro de historial
 router.delete("/registro/:historial_id", historialController.deleteRecord);
 
+// Obtener historial completo de un paciente (para el paciente mismo)
+router.get("/paciente/:paciente_id", historialController.getByPacienteId);
+
 export default router;

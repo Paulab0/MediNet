@@ -43,3 +43,4 @@ const logActividadController = {
 
 export default logActividadController;
 
+

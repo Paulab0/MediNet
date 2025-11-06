@@ -139,6 +139,26 @@ const patientController = {
       res.status(500).json({ error: error.message });
     }
   },
+
+  // Obtener pacientes con cantidad de atenciones
+  async getPatientsWithAttendances(req, res) {
+    try {
+      const filters = {
+        medico_id: req.query.medico_id,
+        fecha_desde: req.query.fecha_desde,
+        fecha_hasta: req.query.fecha_hasta,
+        ordenar_por: req.query.ordenar_por || 'nombre',
+      };
+
+      // Eliminar filtros undefined
+      Object.keys(filters).forEach(key => filters[key] === undefined && delete filters[key]);
+
+      const result = await Patient.getPatientsWithAttendances(filters);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  },
 };
 
 export default patientController;

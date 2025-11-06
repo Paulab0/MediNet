@@ -24,7 +24,10 @@ import CalendarView from "./CalendarView";
 import NotificationsView from "./NotificationsView";
 import EditProfileForm from "./EditProfileForm";
 import EditMedicalInfoForm from "./EditMedicalInfoForm";
+import AvailabilityManagement from "./AvailabilityManagement";
 import PatientsView from "./PatientsView";
+import MedicalHistoryForm from "./MedicalHistoryForm";
+import PatientHistoryView from "./PatientHistoryView";
 import appointmentService from "../../../servicios/servicioCita";
 import { useAuth } from "../../../contextos/AuthContext";
 
@@ -35,6 +38,11 @@ const DoctorDashboard = () => {
   const [isAddPatientFormOpen, setIsAddPatientFormOpen] = useState(false);
   const [isEditProfileFormOpen, setIsEditProfileFormOpen] = useState(false);
   const [isEditMedicalInfoFormOpen, setIsEditMedicalInfoFormOpen] = useState(false);
+  const [isAvailabilityManagementOpen, setIsAvailabilityManagementOpen] = useState(false);
+  const [isMedicalHistoryFormOpen, setIsMedicalHistoryFormOpen] = useState(false);
+  const [isPatientHistoryViewOpen, setIsPatientHistoryViewOpen] = useState(false);
+  const [selectedPatient, setSelectedPatient] = useState(null);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentView, setCurrentView] = useState("dashboard");
@@ -310,24 +318,36 @@ const DoctorDashboard = () => {
         throw new Error("Debe seleccionar un tipo de cita");
       }
 
+      // Formatear la hora a HH:MM:SS si viene en HH:MM
+      let horaFormateada = appointmentData.cita_hora;
+      if (horaFormateada && horaFormateada.length === 5) {
+        horaFormateada = horaFormateada + ":00";
+      }
+
       const citaData = {
         medico_id: user.medico_id,
         paciente_id: appointmentData.paciente_id,
         cita_fecha: appointmentData.cita_fecha,
-        cita_hora: appointmentData.cita_hora,
+        cita_hora: horaFormateada,
         cita_tipo: appointmentData.cita_tipo,
         cita_observaciones: appointmentData.cita_observaciones || null,
-        cita_estado: 1, // Pendiente
+        cita_estado: "Programada", // Estado inicial
       };
 
       console.log("Datos finales de la cita:", citaData);
 
       await appointmentService.createAppointment(citaData);
 
+      // Mostrar mensaje de éxito
+      alert("Cita agendada exitosamente");
+
       // Recargar las citas y reportes
-      refreshReports();
+      await loadDashboardData();
+      await loadDoctorAppointments(selectedPeriod);
     } catch (error) {
       console.error("Error creando cita:", error);
+      const errorMessage = error.response?.data?.error || error.message || "Error al crear la cita";
+      alert(`Error: ${errorMessage}`);
       throw error;
     }
   };
@@ -355,6 +375,13 @@ const DoctorDashboard = () => {
       name: "Agenda Médica",
       icon: CalendarIcon,
       description: "Calendario de citas",
+    },
+    {
+      id: "availability",
+      name: "Disponibilidad",
+      icon: ClockIcon,
+      description: "Gestionar horarios disponibles",
+      action: () => setIsAvailabilityManagementOpen(true),
     },
     {
       id: "patients",
@@ -705,6 +732,24 @@ const DoctorDashboard = () => {
                                       {appointment.cita_estado}
                                     </div>
                                   </div>
+
+                                  {appointment.cita_estado === "Pendiente" && (
+                                    <button
+                                      onClick={() => {
+                                        setSelectedPatient({
+                                          paciente_id: appointment.paciente_id,
+                                          paciente_nombre: appointment.paciente_nombre,
+                                          paciente_apellido: appointment.paciente_apellido,
+                                        });
+                                        setSelectedAppointment(appointment);
+                                        setIsMedicalHistoryFormOpen(true);
+                                      }}
+                                      className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                                      title="Registrar historial médico"
+                                    >
+                                      Registrar Historial
+                                    </button>
+                                  )}
 
                                   <button
                                     onClick={() => setCurrentView("calendar")}
@@ -1093,8 +1138,13 @@ const DoctorDashboard = () => {
             <button
               key={option.id}
               onClick={() => {
-                setCurrentView(option.id);
-                setIsSidebarOpen(false);
+                if (option.action) {
+                  option.action();
+                  setIsSidebarOpen(false);
+                } else {
+                  setCurrentView(option.id);
+                  setIsSidebarOpen(false);
+                }
               }}
               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
                 currentView === option.id
@@ -1180,6 +1230,56 @@ const DoctorDashboard = () => {
           loadDashboardData();
           setIsEditMedicalInfoFormOpen(false);
         }}
+      />
+      <AvailabilityManagement
+        isOpen={isAvailabilityManagementOpen}
+        onClose={() => setIsAvailabilityManagementOpen(false)}
+      />
+
+      {/* Modal de Registro de Historial Médico */}
+      <MedicalHistoryForm
+        isOpen={isMedicalHistoryFormOpen}
+        onClose={() => {
+          setIsMedicalHistoryFormOpen(false);
+          setSelectedPatient(null);
+          setSelectedAppointment(null);
+        }}
+        patient={selectedPatient}
+        appointment={selectedAppointment}
+        onSuccess={() => {
+          loadDashboardData();
+          setIsMedicalHistoryFormOpen(false);
+          setSelectedPatient(null);
+          setSelectedAppointment(null);
+        }}
+      />
+
+      {/* Modal de Visualización de Historial Médico */}
+      <PatientHistoryView
+        isOpen={isPatientHistoryViewOpen}
+        onClose={() => {
+          setIsPatientHistoryViewOpen(false);
+          setSelectedPatient(null);
+        }}
+        patient={selectedPatient}
+        onHistoryUpdated={() => {
+          loadDashboardData();
+        }}
+      />
+
+      {/* Modal de Agendamiento de Cita */}
+      <AppointmentForm
+        isOpen={isAppointmentFormOpen}
+        onClose={() => setIsAppointmentFormOpen(false)}
+        onSubmit={handleCreateAppointment}
+        onAddPatient={handleAddPatientClick}
+      />
+
+      {/* Modal de Agregar Paciente */}
+      <AddPatientForm
+        isOpen={isAddPatientFormOpen}
+        onClose={() => setIsAddPatientFormOpen(false)}
+        onPatientAdded={handlePatientAdded}
       />
     </div>
   );

@@ -1,7 +1,7 @@
 import db from "../../database/connectiondb.js";
 
 class Historial {
-  // Obtener historial de un paciente específico
+  // Obtener historial de un paciente específico (por médico)
   static async getByPatient(medico_id, paciente_id) {
     try {
       const query = `
@@ -22,6 +22,42 @@ class Historial {
       `;
 
       const result = await db.executeQuery(query, [medico_id, paciente_id]);
+
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+
+      return result.data || [];
+    } catch (error) {
+      throw new Error(
+        `Error al obtener historial del paciente: ${error.message}`
+      );
+    }
+  }
+
+  // Obtener historial completo de un paciente (para el paciente mismo - sin filtrar por médico)
+  static async getByPacienteId(paciente_id) {
+    try {
+      const query = `
+        SELECT 
+          h.historial_id, h.historial_fecha, h.historial_tipo, 
+          h.historial_diagnostico, h.historial_tratamiento, 
+          h.historial_observaciones, h.historial_medicamentos,
+          h.historial_proxima_cita, h.historial_estado_paciente,
+          h.historial_creado_en, h.historial_actualizado_en,
+          um.usuario_nombre as medico_nombre, 
+          um.usuario_apellido as medico_apellido,
+          e.especialidad_nombre,
+          m.medico_consultorio
+        FROM historiales h
+        INNER JOIN medicos m ON h.medico_id = m.medico_id
+        INNER JOIN usuarios um ON m.usuario_id = um.usuario_id
+        LEFT JOIN especialidades e ON m.especialidad_id = e.especialidad_id
+        WHERE h.paciente_id = ? AND h.historial_estado = 1
+        ORDER BY h.historial_fecha DESC, h.historial_creado_en DESC
+      `;
+
+      const result = await db.executeQuery(query, [paciente_id]);
 
       if (!result.success) {
         throw new Error(result.error);

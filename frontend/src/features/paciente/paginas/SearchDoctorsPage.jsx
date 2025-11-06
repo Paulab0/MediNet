@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { MagnifyingGlassIcon, UserCircleIcon, MapPinIcon, PhoneIcon, CalendarIcon } from "@heroicons/react/24/outline";
 import doctorService from "../../../servicios/servicioMedico";
 import specialtyService from "../../../servicios/servicioEspecialidad";
+import BookAppointmentModal from "../componentes/BookAppointmentModal";
 
 const SearchDoctorsPage = () => {
   const [doctors, setDoctors] = useState([]);
@@ -13,6 +14,8 @@ const SearchDoctorsPage = () => {
     hora: "",
   });
   const [loading, setLoading] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
   useEffect(() => {
     loadSpecialties();
@@ -220,17 +223,38 @@ const SearchDoctorsPage = () => {
                   )}
                 </div>
 
-                <button className="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
-                  Ver disponibilidad
+                <button
+                  onClick={() => {
+                    setSelectedDoctor(doctor);
+                    setIsBookingModalOpen(true);
+                  }}
+                  className="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                >
+                  Agendar Cita
                 </button>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* Modal de Agendamiento */}
+      <BookAppointmentModal
+        isOpen={isBookingModalOpen}
+        onClose={() => {
+          setIsBookingModalOpen(false);
+          setSelectedDoctor(null);
+        }}
+        doctor={selectedDoctor}
+        onSuccess={() => {
+          // Recargar la búsqueda después de agendar
+          searchDoctors();
+        }}
+      />
     </div>
   );
 };
 
 export default SearchDoctorsPage;
+
 

@@ -3,6 +3,7 @@ import appointmentService from "../../../servicios/servicioCita";
 import userService from "../../../servicios/servicioUsuario";
 import patientService from "../../../servicios/servicioPaciente";
 import doctorService from "../../../servicios/servicioMedico";
+import PendingLoginsSection from "../componentes/PendingLoginsSection";
 
 const StatCard = ({ title, value, subtitle, icon, gradient }) => {
   const IconComponent = icon;
@@ -175,6 +176,9 @@ const AdminDashboardPage = () => {
           )}
         />
       </div>
+
+      {/* Sección de Inicios de Sesión Pendientes */}
+      <PendingLoginsSection />
     </div>
   );
 };

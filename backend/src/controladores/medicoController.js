@@ -1,4 +1,6 @@
 import Doctor from "../modelos/medicoModel.js";
+import User from "../modelos/usuarioModel.js";
+import LogActividad from "../modelos/logActividadModel.js";
 
 const doctorController = {
   // Crear médico
@@ -8,6 +10,106 @@ const doctorController = {
       const result = await Doctor.create(medicoData);
       res.status(201).json(result);
     } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  },
+
+  // Registrar médico completo (crear usuario + médico)
+  async registerDoctor(req, res) {
+    try {
+      const {
+        // Datos del usuario
+        usuario_nombre,
+        usuario_apellido,
+        usuario_edad,
+        usuario_genero,
+        usuario_identificacion,
+        identificacion_id,
+        usuario_direccion,
+        usuario_ciudad,
+        usuario_correo,
+        usuario_telefono,
+        usuario_contrasena,
+        // Datos del médico
+        especialidad_id,
+        medico_consultorio,
+      } = req.body;
+
+      // Validaciones básicas
+      if (!usuario_nombre || !usuario_apellido || !usuario_correo || !usuario_contrasena) {
+        return res.status(400).json({ error: "Faltan campos obligatorios del usuario" });
+      }
+
+      if (!especialidad_id) {
+        return res.status(400).json({ error: "La especialidad es obligatoria" });
+      }
+
+      // Verificar si el email ya existe
+      const existingUser = await User.findByEmail(usuario_correo);
+      if (existingUser) {
+        return res.status(400).json({ error: "El correo electrónico ya está registrado" });
+      }
+
+      // Crear usuario con rol de médico (rol_id = 2)
+      const userData = {
+        usuario_nombre,
+        usuario_apellido,
+        usuario_edad: usuario_edad || null,
+        usuario_genero: usuario_genero || null,
+        usuario_identificacion,
+        identificacion_id: identificacion_id || 1, // CC por defecto
+        usuario_direccion: usuario_direccion || null,
+        usuario_ciudad: usuario_ciudad || null,
+        usuario_correo,
+        usuario_telefono: usuario_telefono || null,
+        usuario_contrasena,
+        rol_id: 2, // Rol de médico
+      };
+
+      const userResult = await User.create(userData);
+      if (!userResult.success) {
+        throw new Error("Error al crear el usuario");
+      }
+
+      // Crear médico asociado al usuario
+      const medicoData = {
+        usuario_id: userResult.insertId,
+        especialidad_id,
+        medico_consultorio: medico_consultorio || null,
+        medico_estado: 1,
+      };
+
+      const medicoResult = await Doctor.create(medicoData);
+      if (!medicoResult.success) {
+        // Si falla la creación del médico, eliminar el usuario creado
+        await User.delete(userResult.insertId);
+        throw new Error("Error al crear el médico");
+      }
+
+      // Registrar log de actividad
+      try {
+        const clientIp = req.ip || req.connection.remoteAddress;
+        const userAgent = req.get('user-agent');
+        await LogActividad.create({
+          usuario_id: req.user?.usuario_id || null,
+          log_tipo: "Crear",
+          log_entidad: "Médico",
+          log_descripcion: `Médico registrado: ${usuario_nombre} ${usuario_apellido} (ID: ${medicoResult.insertId})`,
+          log_ip: clientIp,
+          log_user_agent: userAgent,
+        });
+      } catch (logError) {
+        console.error("Error registrando log:", logError);
+      }
+
+      res.status(201).json({
+        success: true,
+        message: "Médico registrado exitosamente",
+        usuario_id: userResult.insertId,
+        medico_id: medicoResult.insertId,
+      });
+    } catch (error) {
+      console.error("Error registrando médico:", error);
       res.status(400).json({ error: error.message });
     }
   },
@@ -236,6 +338,44 @@ const doctorController = {
       });
 
       console.log(`✅ [DoctorController] Perfil actualizado:`, result);
+      res.json(result);
+    } catch (error) {
+      console.error(`❌ [DoctorController] Error:`, error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  // Actualizar información médica (especialidad, consultorio)
+  async updateMedicalInfo(req, res) {
+    try {
+      const { id } = req.params;
+      const { especialidad_id, medico_consultorio } = req.body;
+
+      console.log(`🔍 [DoctorController] Actualizando información médica del médico ${id}`);
+      console.log(`📊 [DoctorController] Datos recibidos:`, req.body);
+
+      const result = await Doctor.updateMedicalInfo(id, {
+        especialidad_id,
+        medico_consultorio,
+      });
+
+      // Registrar log de actividad
+      try {
+        const clientIp = req.ip || req.connection.remoteAddress;
+        const userAgent = req.get('user-agent');
+        await LogActividad.create({
+          usuario_id: req.user?.usuario_id || null,
+          log_tipo: "Actualizar",
+          log_entidad: "Médico",
+          log_descripcion: `Información médica actualizada para médico ID: ${id}`,
+          log_ip: clientIp,
+          log_user_agent: userAgent,
+        });
+      } catch (logError) {
+        console.warn('⚠️ No se pudo registrar el log de actividad:', logError.message);
+      }
+
+      console.log(`✅ [DoctorController] Información médica actualizada:`, result);
       res.json(result);
     } catch (error) {
       console.error(`❌ [DoctorController] Error:`, error);

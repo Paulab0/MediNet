@@ -147,6 +147,16 @@ const historialService = {
       throw error.response?.data || { error: "Error al exportar el historial" };
     }
   },
+
+  // Obtener historial completo de un paciente (para el paciente mismo)
+  getMyHistory: async (paciente_id) => {
+    try {
+      const response = await api.get(`/historial/paciente/${paciente_id}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { error: "Error al obtener el historial médico" };
+    }
+  },
 };
 
 export default historialService;

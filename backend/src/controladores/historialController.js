@@ -126,6 +126,32 @@ const historialController = {
       res.status(400).json({ error: error.message });
     }
   },
+
+  // Obtener historial completo de un paciente (para el paciente mismo)
+  async getByPacienteId(req, res) {
+    try {
+      const { paciente_id } = req.params;
+
+      console.log(
+        `🔍 [HistorialController] Obteniendo historial del paciente ${paciente_id}`
+      );
+
+      const history = await Historial.getByPacienteId(paciente_id);
+
+      console.log(
+        `📊 [HistorialController] Registros de historial encontrados:`,
+        history.length
+      );
+
+      res.json(history);
+    } catch (error) {
+      console.error(
+        `❌ [HistorialController] Error obteniendo historial:`,
+        error
+      );
+      res.status(400).json({ error: error.message });
+    }
+  },
 };
 
 export default historialController;
