@@ -39,8 +39,21 @@ const UserFormModal = ({ open, onClose, onSubmit, initialValues }) => {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-xl">
+    <div className="fixed inset-0 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-xl relative">
+        {/* Logo MediNet en la parte superior */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 rounded-t-lg">
+          <div className="flex items-center justify-center">
+            <div className="text-center">
+              <h1 className="text-3xl font-black text-white drop-shadow-lg">
+                MediNet
+              </h1>
+              <p className="text-xs text-blue-100 font-medium tracking-widest mt-1">
+                SISTEMA MÉDICO
+              </p>
+            </div>
+          </div>
+        </div>
         <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
           <h3 className="text-base font-semibold text-gray-800">
             {isEdit ? "Editar usuario" : "Crear usuario"}

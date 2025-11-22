@@ -348,7 +348,7 @@ class Reminder {
                 INNER JOIN usuarios up ON p.usuario_id = up.usuario_id
                 LEFT JOIN especialidades e ON m.especialidad_id = e.especialidad_id
                 WHERE r.recordatorio_estado = 1 
-                AND r.recordatorio_enviado = FALSE
+                AND (r.recordatorio_enviado = 0 OR r.recordatorio_enviado = FALSE)
                 AND c.cita_estado NOT IN ('Cancelada', 'Completada', 'No asistió')
                 AND (
                     (r.recordatorio_fecha < CURDATE()) 
@@ -358,10 +358,13 @@ class Reminder {
             `;
             const result = await db.executeQuery(query);
             if (!result.success) {
-                throw new Error(result.error);
+                console.error('❌ [ReminderModel] Error en consulta SQL:', result.error);
+                console.error('❌ [ReminderModel] Query:', query);
+                throw new Error(result.error || 'Error desconocido al ejecutar la consulta');
             }
             return result.data || [];
         } catch (error) {
+            console.error('❌ [ReminderModel] Error completo en getPendingReminders:', error);
             throw new Error(`Error al obtener recordatorios pendientes: ${error.message}`);
         }
     }

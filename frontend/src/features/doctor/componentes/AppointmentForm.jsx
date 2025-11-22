@@ -224,10 +224,23 @@ const AppointmentForm = ({ isOpen, onClose, onSubmit, onAddPatient }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative">
+        {/* Logo MediNet en la parte superior */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 rounded-t-3xl">
+          <div className="flex items-center justify-center">
+            <div className="text-center">
+              <h1 className="text-4xl font-black text-white drop-shadow-lg">
+                MediNet
+              </h1>
+              <p className="text-xs text-blue-100 font-medium tracking-widest mt-1">
+                SISTEMA MÉDICO
+              </p>
+            </div>
+          </div>
+        </div>
         {/* Header */}
-        <div className="bg-blue-100 p-6 rounded-t-3xl">
+        <div className="bg-blue-100 p-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-gray-900">
               Agendar Nueva Cita

@@ -1,0 +1,108 @@
+/* Estilos generales */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    background-color: #f4f7f9;
+    color: #333;
+    /* Evita el desbordamiento horizontal cuando el sidebar está cerrado */
+    overflow-x: hidden; 
+}
+
+#dashboard-container {
+    position: relative;
+    min-height: 100vh;
+}
+
+/* Header */
+.main-header {
+    background-color: #ffffff;
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.main-header h1 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+/* Contenido Principal */
+.main-content {
+    padding: 2rem;
+}
+
+/* Botón para desplegar el sidebar */
+#sidebar-toggle-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #333;
+    padding: 0.5rem;
+    line-height: 1;
+}
+
+/* --- Estilos del Sidebar --- */
+.sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 260px;
+    background-color: #2c3e50;
+    color: #ecf0f1;
+    box-shadow: -3px 0 15px rgba(0, 0, 0, 0.2);
+    
+    /* Oculta el sidebar fuera de la pantalla a la derecha */
+    transform: translateX(100%); 
+    
+    /* Transición suave para el efecto de deslizamiento */
+    transition: transform 0.3s ease-in-out;
+    z-index: 1001;
+}
+
+/* Clase que se añade con JS para mostrar el sidebar */
+.sidebar.open {
+    transform: translateX(0);
+}
+
+.sidebar-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #34495e;
+}
+
+.sidebar-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+/* Navegación del sidebar */
+.sidebar-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-nav a {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    color: #ecf0f1;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+}
+
+.sidebar-nav a:hover {
+    background-color: #34495e;
+}
+
+.sidebar-nav a i {
+    width: 20px; /* Alinea los íconos */
+    text-align: center;
+}

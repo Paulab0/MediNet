@@ -9,7 +9,13 @@ class ReminderService {
       console.log("🔔 [ReminderService] Iniciando procesamiento de recordatorios pendientes...");
 
       // Obtener recordatorios pendientes
-      const pendingReminders = await Reminder.getPendingReminders();
+      let pendingReminders;
+      try {
+        pendingReminders = await Reminder.getPendingReminders();
+      } catch (error) {
+        console.error('❌ [ReminderService] Error al obtener recordatorios pendientes:', error);
+        throw new Error(`Error al obtener recordatorios pendientes: ${error.message}`);
+      }
 
       if (pendingReminders.length === 0) {
         console.log("✅ [ReminderService] No hay recordatorios pendientes");
@@ -95,6 +101,7 @@ class ReminderService {
       };
     } catch (error) {
       console.error("❌ [ReminderService] Error en procesamiento de recordatorios:", error);
+      console.error("❌ [ReminderService] Stack trace:", error.stack);
       throw new Error(`Error procesando recordatorios: ${error.message}`);
     }
   }

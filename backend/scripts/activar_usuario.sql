@@ -10,3 +10,4 @@ SELECT usuario_id, usuario_nombre, usuario_apellido, usuario_correo, usuario_est
 FROM usuarios 
 WHERE usuario_correo = 'buitragopaula769@gmail.com';
 
+

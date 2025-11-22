@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../contextos/AuthContext";
 import NotificationCenter from "../../../componentes/NotificationCenter";
@@ -11,6 +11,7 @@ const AdminLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isBlockingBack = useRef(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Bloquear completamente el botón de retroceso
   useEffect(() => {
@@ -110,22 +111,46 @@ const AdminLayout = () => {
 
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Sidebar */}
-      <aside className="w-64 bg-gradient-to-b from-blue-900 via-blue-800 to-blue-900 shadow-2xl hidden md:flex md:flex-col">
+      {/* Sidebar Deslizable Derecho */}
+      <aside
+        className={`fixed top-0 right-0 h-full w-64 bg-gradient-to-b from-blue-900 via-blue-800 to-blue-900 shadow-2xl transform transition-transform duration-300 ease-in-out z-40 flex flex-col ${
+          isSidebarOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
         {/* Logo/Header */}
-        <div className="h-20 flex items-center justify-center px-6 border-b border-blue-700/50">
-          <div className="text-center">
+        <div className="h-20 flex items-center justify-between px-6 border-b border-blue-700/50">
+          <div className="text-center flex-1">
             <h1 className="text-2xl font-bold text-white mb-1 drop-shadow-lg">
               MediNet
             </h1>
             <p className="text-xs text-blue-200 font-medium">Administración</p>
           </div>
+          <button
+            onClick={() => setIsSidebarOpen(false)}
+            className="p-2 rounded-lg hover:bg-blue-700/50 transition-colors text-white"
+            aria-label="Cerrar menú"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
         </div>
 
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           <NavLink
             to="/administrador/panel"
+            onClick={() => setIsSidebarOpen(false)}
             className={({ isActive }) =>
               `${navLinkBase} ${
                 isActive
@@ -151,6 +176,7 @@ const AdminLayout = () => {
           </NavLink>
           <NavLink
             to="/administrador/usuarios"
+            onClick={() => setIsSidebarOpen(false)}
             className={({ isActive }) =>
               `${navLinkBase} ${
                 isActive
@@ -176,6 +202,7 @@ const AdminLayout = () => {
           </NavLink>
           <NavLink
             to="/administrador/medicos"
+            onClick={() => setIsSidebarOpen(false)}
             className={({ isActive }) =>
               `${navLinkBase} ${
                 isActive
@@ -201,6 +228,7 @@ const AdminLayout = () => {
           </NavLink>
           <NavLink
             to="/administrador/pacientes"
+            onClick={() => setIsSidebarOpen(false)}
             className={({ isActive }) =>
               `${navLinkBase} ${
                 isActive
@@ -226,6 +254,7 @@ const AdminLayout = () => {
           </NavLink>
           <NavLink
             to="/administrador/citas"
+            onClick={() => setIsSidebarOpen(false)}
             className={({ isActive }) =>
               `${navLinkBase} ${
                 isActive
@@ -251,6 +280,7 @@ const AdminLayout = () => {
           </NavLink>
           <NavLink
             to="/administrador/reportes/citas"
+            onClick={() => setIsSidebarOpen(false)}
             className={({ isActive }) =>
               `${navLinkBase} ${
                 isActive
@@ -276,6 +306,7 @@ const AdminLayout = () => {
           </NavLink>
           <NavLink
             to="/administrador/reportes/pacientes"
+            onClick={() => setIsSidebarOpen(false)}
             className={({ isActive }) =>
               `${navLinkBase} ${
                 isActive
@@ -301,6 +332,7 @@ const AdminLayout = () => {
           </NavLink>
           <NavLink
             to="/administrador/estadisticas"
+            onClick={() => setIsSidebarOpen(false)}
             className={({ isActive }) =>
               `${navLinkBase} ${
                 isActive
@@ -326,6 +358,7 @@ const AdminLayout = () => {
           </NavLink>
           <NavLink
             to="/administrador/configuracion"
+            onClick={() => setIsSidebarOpen(false)}
             className={({ isActive }) =>
               `${navLinkBase} ${
                 isActive
@@ -382,8 +415,49 @@ const AdminLayout = () => {
               Gestiona usuarios, médicos, pacientes y citas
             </p>
           </div>
+          
+          {/* Sección Central - Logo MEDINET clickeable */}
+          <div className="flex-1 flex justify-center">
+            <button
+              onClick={() => navigate("/administrador/panel")}
+              className="relative group cursor-pointer"
+              title="Ir al Dashboard"
+            >
+              <h1 className="text-4xl font-black bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 bg-clip-text text-transparent group-hover:animate-bounce transition-all duration-300">
+                MediNet
+              </h1>
+              <div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out"></div>
+              <p className="text-xs text-gray-600 text-center mt-2 font-medium tracking-widest opacity-80 group-hover:opacity-100 transition-opacity duration-300">
+                SISTEMA MÉDICO
+              </p>
+              {/* Efecto de brillo sutil */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-500 rounded-lg"></div>
+            </button>
+          </div>
+
           <div className="flex items-center gap-4">
             <NotificationCenter />
+            {/* Botón para abrir el sidebar */}
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700"
+              aria-label="Abrir menú"
+              title={isSidebarOpen ? "Ocultar menú" : "Mostrar menú"}
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            </button>
             <button
               onClick={handleLogout}
               className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
@@ -411,6 +485,14 @@ const AdminLayout = () => {
           <Outlet />
         </main>
       </div>
+
+      {/* Overlay para cerrar sidebar en móvil */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-25 z-30 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
     </div>
   );
 };

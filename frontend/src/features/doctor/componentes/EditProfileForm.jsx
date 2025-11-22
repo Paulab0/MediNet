@@ -159,8 +159,21 @@ const EditProfileForm = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative">
+        {/* Logo MediNet en la parte superior */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 rounded-t-2xl">
+          <div className="flex items-center justify-center">
+            <div className="text-center">
+              <h1 className="text-4xl font-black text-white drop-shadow-lg">
+                MediNet
+              </h1>
+              <p className="text-xs text-blue-100 font-medium tracking-widest mt-1">
+                SISTEMA MÉDICO
+              </p>
+            </div>
+          </div>
+        </div>
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">

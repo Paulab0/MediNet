@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard del Administrador</title>
+    <!-- Enlace a tu hoja de estilos CSS -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Para el ícono de menú, usamos Font Awesome (puedes usar cualquier otra librería o un SVG) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body>
+
+    <div id="dashboard-container">
+        <!-- Header principal -->
+        <header class="main-header">
+            <h1>Panel de Administrador</h1>
+            <!-- Botón para mostrar/ocultar el sidebar -->
+            <button id="sidebar-toggle-btn" aria-label="Toggle sidebar">
+                <i class="fas fa-bars"></i>
+            </button>
+        </header>
+
+        <!-- Contenido principal de la página -->
+        <main class="main-content">
+            <h2>Bienvenido, Administrador</h2>
+            <p>Este es el área de contenido principal. Aquí puedes colocar tus tablas, gráficos y otros componentes.</p>
+        </main>
+
+        <!-- Sidebar (menú lateral) -->
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>Menú</h3>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="#"><i class="fas fa-home"></i><span>Inicio</span></a></li>
+                    <li><a href="#"><i class="fas fa-users"></i><span>Usuarios</span></a></li>
+                    <li><a href="#"><i class="fas fa-chart-bar"></i><span>Reportes</span></a></li>
+                    <li><a href="#"><i class="fas fa-cog"></i><span>Configuración</span></a></li>
+                    <li><a href="#"><i class="fas fa-sign-out-alt"></i><span>Cerrar Sesión</span></a></li>
+                </ul>
+            </nav>
+        </aside>
+    </div>
+
+    <!-- Enlace a tu archivo JavaScript -->
+    <script src="script.js"></script>
+
+</body>
+</html>

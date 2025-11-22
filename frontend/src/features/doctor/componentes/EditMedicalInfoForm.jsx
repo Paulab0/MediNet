@@ -70,10 +70,21 @@ const EditMedicalInfoForm = ({ isOpen, onClose, onSuccess }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 rounded-t-2xl">
-          <div className="flex items-center justify-between">
+    <div className="fixed inset-0 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md relative">
+        {/* Logo MediNet en la parte superior */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 rounded-t-2xl">
+          <div className="flex items-center justify-center mb-2">
+            <div className="text-center">
+              <h1 className="text-3xl font-black text-white drop-shadow-lg">
+                MediNet
+              </h1>
+              <p className="text-xs text-blue-100 font-medium tracking-widest mt-1">
+                SISTEMA MÉDICO
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center justify-between mt-4">
             <h2 className="text-2xl font-bold text-white">Información Médica</h2>
             <button
               onClick={onClose}

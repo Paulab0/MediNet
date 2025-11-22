@@ -22,6 +22,7 @@ import SearchDoctorsPage from "../features/paciente/paginas/SearchDoctorsPage";
 import MyAppointmentsPage from "../features/paciente/paginas/MyAppointmentsPage";
 import MyMedicalHistoryPage from "../features/paciente/paginas/MyMedicalHistoryPage";
 import SettingsPage from "../features/administrador/paginas/SettingsPage";
+import PatientLayout from "../features/paciente/componentes/PatientLayout";
 
 const AppRoutes = () => {
   return (
@@ -88,11 +89,18 @@ const AppRoutes = () => {
         }
       />
 
-      {/* Rutas para paciente (placeholder) */}
+      {/* Rutas para paciente */}
       <Route
-        path="/paciente/panel"
+        path="/paciente"
         element={
           <ProtectedRoute requiredRole={3}>
+            <PatientLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route
+          path="panel"
+          element={
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
               <div className="text-center">
                 <h1 className="text-3xl font-bold text-gray-900 mb-4">
@@ -101,41 +109,13 @@ const AppRoutes = () => {
                 <p className="text-gray-600">Panel de paciente en desarrollo</p>
               </div>
             </div>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/paciente/perfil"
-        element={
-          <ProtectedRoute requiredRole={3}>
-            <ProfilePage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/paciente/buscar-medicos"
-        element={
-          <ProtectedRoute requiredRole={3}>
-            <SearchDoctorsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/paciente/mis-citas"
-        element={
-          <ProtectedRoute requiredRole={3}>
-            <MyAppointmentsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/paciente/mi-historial"
-        element={
-          <ProtectedRoute requiredRole={3}>
-            <MyMedicalHistoryPage />
-          </ProtectedRoute>
-        }
-      />
+          }
+        />
+        <Route path="perfil" element={<ProfilePage />} />
+        <Route path="buscar-medicos" element={<SearchDoctorsPage />} />
+        <Route path="mis-citas" element={<MyAppointmentsPage />} />
+        <Route path="mi-historial" element={<MyMedicalHistoryPage />} />
+      </Route>
 
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
