@@ -335,23 +335,30 @@ const PatientsView = () => {
 
       {/* Modal de Historial Moderno */}
       {showHistoryModal && selectedPatient && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div className="fixed inset-0 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto shadow-2xl relative">
+            {/* Logo MediNet en la parte superior */}
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 rounded-t-2xl">
+              <div className="flex items-center justify-center">
+                <div className="text-center">
+                  <h1 className="text-4xl font-black text-white drop-shadow-lg">MediNet</h1>
+                  <p className="text-xs text-blue-100 font-medium tracking-widest mt-1">SISTEMA MÉDICO</p>
+                </div>
+              </div>
+            </div>
             {/* Header del Modal */}
-            <div className="bg-gradient-to-r from-blue-50 to-emerald-50 px-6 py-4 border-b border-gray-200 rounded-t-2xl">
+            <div className="px-6 py-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
                     <DocumentTextIcon className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900">
-                      Historial Médico
-                    </h2>
+                    <h2 className="text-2xl font-bold text-gray-900">Historial Médico</h2>
                     <p className="text-gray-600">
-                      {selectedPatient.paciente_nombre}{" "}
-                      {selectedPatient.paciente_apellido} •{" "}
-                      {selectedPatient.usuario_edad} años •{" "}
+                      {selectedPatient.paciente_nombre} {" "}
+                      {selectedPatient.paciente_apellido} • {" "}
+                      {selectedPatient.usuario_edad} años • {" "}
                       {selectedPatient.usuario_genero}
                     </p>
                   </div>
@@ -488,13 +495,31 @@ const PatientsView = () => {
 
       {/* Modal para Agregar Registro */}
       {showAddRecordModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">
-              Nuevo Registro de Historial
-            </h3>
+        <div className="fixed inset-0 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto relative">
+            {/* Logo MediNet en la parte superior */}
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 rounded-t-2xl">
+              <div className="flex items-center justify-center">
+                <div className="text-center">
+                  <h1 className="text-4xl font-black text-white drop-shadow-lg">MediNet</h1>
+                  <p className="text-xs text-blue-100 font-medium tracking-widest mt-1">SISTEMA MÉDICO</p>
+                </div>
+              </div>
+            </div>
 
-            <div className="space-y-4">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-gray-900">Nuevo Registro de Historial</h3>
+                <button
+                  onClick={() => setShowAddRecordModal(false)}
+                  className="px-3 py-1 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors border border-gray-300"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">

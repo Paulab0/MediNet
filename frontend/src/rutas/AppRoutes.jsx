@@ -21,7 +21,6 @@ import ProfilePage from "../features/usuario/paginas/ProfilePage";
 import SearchDoctorsPage from "../features/paciente/paginas/SearchDoctorsPage";
 import MyAppointmentsPage from "../features/paciente/paginas/MyAppointmentsPage";
 import MyMedicalHistoryPage from "../features/paciente/paginas/MyMedicalHistoryPage";
-import SettingsPage from "../features/administrador/paginas/SettingsPage";
 import PatientLayout from "../features/paciente/componentes/PatientLayout";
 
 const AppRoutes = () => {
@@ -76,7 +75,7 @@ const AppRoutes = () => {
         <Route path="reportes/pacientes" element={<PatientsReportPage />} />
         <Route path="estadisticas" element={<StatisticsPage />} />
         <Route path="perfil" element={<ProfilePage />} />
-        <Route path="configuracion" element={<SettingsPage />} />
+        {/* Configuración eliminada */}
       </Route>
 
       {/* Ruta de perfil para todos los usuarios autenticados */}

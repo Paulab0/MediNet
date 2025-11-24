@@ -185,10 +185,18 @@ const appointmentController = {
       const { estado } = req.body;
 
       // Validar que el estado sea válido
-      const validStates = ["Programada", "Confirmada", "Completada", "Cancelada", "No asistió"];
+      const validStates = [
+        "Programada",
+        "Confirmada",
+        "Completada",
+        "Cancelada",
+        "No asistió",
+        "Pendiente",
+      ];
       if (!validStates.includes(estado)) {
         return res.status(400).json({
-          error: "Estado inválido. Debe ser: Programada, Confirmada, Completada, Cancelada o No asistió",
+          error:
+            "Estado inválido. Debe ser: Programada, Confirmada, Completada, Cancelada, No asistió o Pendiente",
         });
       }
 

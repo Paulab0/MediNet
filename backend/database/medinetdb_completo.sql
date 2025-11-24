@@ -1,26 +1,4 @@
--- ============================================================================
--- SCRIPT COMPLETO DE BASE DE DATOS MEDINET
--- ============================================================================
--- Este archivo contiene todos los scripts SQL necesarios para crear
--- y configurar la base de datos completa del sistema MediNet.
--- 
--- Orden de ejecución:
--- 1. Creación de base de datos y tablas principales (sin foreign keys)
--- 2. Inserción de datos iniciales
--- 3. Agregar foreign keys
--- 4. Tablas de seguridad y autenticación
--- 5. Tablas de notificaciones y logs
--- 6. Tabla de configuración del sistema
--- 7. Índices adicionales
--- ============================================================================
-
 START TRANSACTION;
-
--- ============================================================================
--- PARTE 1: CREACIÓN DE BASE DE DATOS
--- ============================================================================
-
--- Eliminar base de datos si existe
 DROP DATABASE IF EXISTS `medinetdb`;
 
 -- Crear base de datos
@@ -29,11 +7,6 @@ CREATE DATABASE `medinetdb`;
 -- Usar la base de datos
 USE `medinetdb`;
 
--- ============================================================================
--- PARTE 2: CREACIÓN DE TABLAS PRINCIPALES (SIN FOREIGN KEYS)
--- ============================================================================
-
--- ============================================================================
 -- TABLA: roles
 -- ============================================================================
 CREATE TABLE `roles` (
