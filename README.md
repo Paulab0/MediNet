@@ -1,230 +1,100 @@
-# MediNet - Sistema de Gestión Médica
+     MediNet – Personal Software Process (PSP)
 
-Sistema completo para el manejo de citas médicas, desarrollado con Node.js + React.
+    Este repositorio contiene el desarrollo del proyecto MediNet, una aplicación web para la gestión de citas médicas, desarrollada aplicando las prácticas del Personal Software Process (PSP) para mejorar estimaciones, calidad y control del proceso personal de desarrollo.
+    Aquí se almacenan las evidencias del proceso: planificación, mediciones, seguimiento, defectos, métricas finales y conclusiones del proyecto.
 
-## 🚀 Características
+        Tecnologías utilizadas
 
-- **Autenticación completa** con JWT
-- **Registro de usuarios** (Pacientes, Médicos, Administradores)
-- **Gestión de citas médicas**
-- **Sistema de roles y permisos**
-- **Interfaz moderna y responsive**
+    Frontend
+    React
+    Vite
+    TailwindCSS
 
-## 🛠️ Tecnologías
+    Backend
+    Node.js
+    Express.js
+    
+    Base de Datos
+    MySQL (XAMPP / phpMyAdmin)
+    
 
-### Backend
 
-- Node.js + Express
-- MySQL + MySQL2
-- JWT para autenticación
-- Bcrypt para encriptación
-- CORS habilitado
+        Sobre el PSP (resumen)
 
-### Frontend
+    El Personal Software Process (PSP) es un proceso estructurado que ayuda a mejorar la planificación, la estimación del tamaño, la calidad y el control del trabajo individual. Está enfocado en que el desarrollador mida su propio rendimiento para mejorar continuamente.
 
-- React + Vite
-- Tailwind CSS
-- Axios para API calls
-- React Router para navegación
+        Objetivos del PSP
+    Mejorar la precisión en estimaciones de tiempo y tamaño.
+    Reducir defectos durante el desarrollo.
+    Aumentar la calidad final del software.
+    Registrar y analizar el proceso personal para progresar.
 
-## 📋 Requisitos Previos
+        Niveles PSP
+    
+    PSP0 / PSP0.1: Registro de tiempo, tamaño, defectos y creación de estándares.
+    PSP1 / PSP1.1: Estimación de tamaño y tiempo, planificación basada en datos.
+    PSP2 / PSP2.1: Gestión de calidad, revisiones de diseño y código, análisis de defectos.
 
-- Node.js (versión 16 o superior)
-- MySQL (versión 8.0 o superior)
-- Git
 
-## 🚀 Instalación y Configuración
 
-### 1. Clonar el repositorio
 
-```bash
-git clone <tu-repositorio>
-cd MediNet
-```
 
-### 2. Configurar la base de datos
+        Aplicación del PSP al proyecto MediNet
+    Este proyecto incorporó las actividades PSP en cada fase del desarrollo:
 
-```bash
-# Conectar a MySQL
-mysql -u root -p
+        PSP0 – Base del proceso
+    Registro de tiempo en Clockify.
+    Registro de defectos en GitHub Issues.
+    Estándares de codificación para frontend y backend.
 
-# Ejecutar el script SQL
-source backend/database/medinetdb.sql
-```
+        PSP1 – Estimación y Planificación
+    Estimación del tamaño del proyecto: 1600 LOC.
+    Esfuerzo estimado vs real: 90 horas.
+    Planificación por trimestres (Planificación → Diseño → Codificación → QA).
 
-### 3. Configurar variables de entorno (Backend)
+        PSP2 – Calidad y revisiones
+    Revisiones de diseño y rutas del backend.
+    Revisiones de código antes de pruebas.
+    Corrección de 12 defectos detectados.
 
-```bash
-cd backend
-cp .env.example .env
-```
 
-Editar `.env` con tus credenciales:
 
-```env
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=tu_password
-DB_NAME=medinetdb
-DB_PORT=3306
-JWT_SECRET=tu_secreto_jwt_super_seguro
-```
 
-### 4. Instalar dependencias del Backend
+            Métricas finales
 
-```bash
-cd backend
-npm install
-```
+        Métrica                         	    Valor
+        Tamaño total del programa	            1600 LOC
+        Tiempo total invertido	                90 h
+        Defectos totales	                    12
+        Defectos corregidos                 	12
+        Productividad                       	17.77 LOC/h
+        Densidad de defectos	                0.0075 defectos/LOC
 
-### 5. Instalar dependencias del Frontend
 
-```bash
-cd frontend
-npm install
-```
 
-## 🏃‍♂️ Ejecutar el Proyecto
+        Estructura del Proyecto
+        ├── frontend/
+        │   ├── src/
+        │   ├── public/
+        │   └── README.md
+        ├── backend/
+        │   ├── src/
+        │   ├── routes/
+        │   └── controllers/
+        ├── database/
+        │   └── medinet.sql
+        ├── PSP/
+        │   ├── time_log.xlsx
+        │   ├── defect_log.xlsx
+        │   ├── size_log.xlsx
+        │   └── metrics_report.pdf
+        └── README.md
 
-### Backend
+        Lecciones aprendidas
+    Una buena planificación reduce mucha improvisación.
+    Probar por módulos evita que se acumulen errores al final.
+    Llevar registro de tiempos y defectos hace el proceso mucho más claro.
+    Integrar frontend–backend–BD exige disciplina y revisiones constantes.
 
-```bash
-cd backend
-npm run dev
-```
-
-El servidor estará disponible en: http://localhost:3000
-
-### Frontend
-
-```bash
-cd frontend
-npm run dev
-```
-
-La aplicación estará disponible en: http://localhost:5173
-
-## 📱 Uso del Sistema
-
-### 1. Registro de Usuario
-
-- Navega a `/register`
-- Completa el formulario con tus datos
-- Selecciona el tipo de usuario (Paciente, Médico, Administrador)
-- El sistema validará todos los campos antes del envío
-
-### 2. Inicio de Sesión
-
-- Navega a `/login`
-- Ingresa tu correo y contraseña
-- El sistema te autenticará y redirigirá según tu rol
-
-### 3. Tipos de Usuario
-
-- **Paciente**: Puede ver y gestionar sus citas
-- **Médico**: Puede gestionar su agenda y pacientes
-- **Administrador**: Acceso completo al sistema
-
-## 🔧 Estructura del Proyecto
-
-```
-MEDINET/
-├── backend/
-│   ├── database/
-│   │   ├── connectiondb.js
-│   │   └── medinetdb.sql
-│   ├── src/
-│   │   ├── controllers/
-│   │   ├── models/
-│   │   ├── routes/
-│   │   ├── middleware/
-│   │   ├── app.js
-│   │   └── server.js
-│   └── package.json
-├── frontend/
-│   ├── src/
-│   │   ├── features/
-│   │   │   └── auth/
-│   │   │       ├── components/
-│   │   │       │   ├── LoginForm.jsx
-│   │   │       │   └── RegisterForm.jsx
-│   │   │       └── pages/
-│   │   │           └── RegisterPage.jsx
-│   │   ├── services/
-│   │   │   └── authService.js
-│   │   ├── api/
-│   │   │   └── api.js
-│   │   └── routes/
-│   │       └── AppRoutes.jsx
-│   └── package.json
-└── README.md
-```
-
-## 🧪 Pruebas del Sistema
-
-### 1. Probar el Registro
-
-- Ve a http://localhost:5173/register
-- Completa el formulario con datos válidos
-- Verifica que se cree el usuario en la base de datos
-
-### 2. Probar el Login
-
-- Ve a http://localhost:5173/login
-- Usa las credenciales del usuario registrado
-- Verifica que recibas el token JWT
-
-### 3. Verificar en la Base de Datos
-
-```sql
-USE medinetdb;
-SELECT * FROM usuarios ORDER BY usuario_fecha_registro DESC LIMIT 5;
-```
-
-## 🔒 Seguridad
-
-- Contraseñas encriptadas con Bcrypt
-- JWT para autenticación
-- Validación de datos en frontend y backend
-- CORS configurado para desarrollo
-- Middleware de autorización por roles
-
-## 🐛 Solución de Problemas
-
-### Error de Conexión a MySQL
-
-- Verifica que MySQL esté corriendo
-- Confirma las credenciales en `.env`
-- Asegúrate de que la base de datos `medinetdb` exista
-
-### Error de CORS
-
-- Verifica que el frontend esté en el puerto 5173
-- Confirma la configuración CORS en `app.js`
-
-### Error de JWT
-
-- Verifica que `JWT_SECRET` esté configurado en `.env`
-- Confirma que el token se esté enviando en los headers
-
-## 📞 Soporte
-
-Si tienes problemas o preguntas:
-
-1. Revisa los logs del servidor
-2. Verifica la consola del navegador
-3. Confirma la configuración de la base de datos
-
-## 🚀 Próximas Funcionalidades
-
-- [ ] Dashboard para cada tipo de usuario
-- [ ] Gestión de citas médicas
-- [ ] Sistema de recordatorios
-- [ ] Historial médico de pacientes
-- [ ] Gestión de especialidades médicas
-- [ ] Reportes y estadísticas
-
----
-
-¡Disfruta desarrollando con MEDINET! 🏥✨
-
+        Conclusión Final
+    Aplicar PSP a MediNet permitió tener un proceso más ordenado, datos más claros y una mejor comprensión de cómo mejorar en cada fase. La planificación, las revisiones y la medición continua ayudaron a producir un sistema más estable y con menos defectos.
